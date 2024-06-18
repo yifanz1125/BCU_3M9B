@@ -51,5 +51,4 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-#
-/B3_MM/*.asv
+*.asv
