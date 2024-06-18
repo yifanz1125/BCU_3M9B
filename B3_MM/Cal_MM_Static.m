@@ -53,13 +53,13 @@ close all
     preset.flag_uniform=flag_uniform;
     clear flag_uniform DHri
 %% Powerflow parameters
-    path_matdata='C:\Users\yz7521\OneDrive - Imperial College London\BCU Code\C1_Matpower\matpower7.1\data';
+    path_matdata='C:\Users\yz7521\OneDrive - Imperial College London\BCU Code\BCU_3M9B\C1_Matpower\matpower7.1\data';
     addpath(genpath(path_matdata));
     Case=case9_v2;
 %     Case=case39_modified;
     Basevalue.Sbase=Case.baseMVA;
 %% run matpower--Matpower powerflow ignore the damping effect, and the results are used to calculate equivalent load
-    path_matpower='C:\Users\yz7521\OneDrive - Imperial College London\BCU Code\C1_Matpower\matpower7.1';
+    path_matpower='C:\Users\yz7521\OneDrive - Imperial College London\BCU Code\BCU_3M9B\C1_Matpower\matpower7.1';
     addpath(genpath(path_matpower));
     pfdata=Fun_ResultBack(Case);
     if(ngen~=pfdata.bus.numgen)
