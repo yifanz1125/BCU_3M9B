@@ -48,57 +48,56 @@ function [CCT,Exit_thetac,Exit_omegac,Exit_theta,Exit_omega,flag_CCT,Traj_Stb,Tr
         Changeunit.Currentunit=Changeunit.candidate(n_step);
         flag_changeunit=0;
     %% Current unit scan
-        while(flag_changeunit==0)
-            delta0=thetac_fault(Stb.n_current,:);
-            omega0=omega_fault(Stb.n_current,:);
-            [theta_RK4,omega_RK4,thetac_RK4,omegacoi_RK4,Pe,cycle,flag_unstb]=Fun_TrajIter_StableCheck_SRF(Tpostmax,Tunit,postfault,preset,delta0,omega0,omegab);
-            
-            if(flag_unstb==0)
-                if(Stb.n_stbmax<Stb.n_current)
-                    Stb.n_stbmax=Stb.n_current;
-                    Traj_Stb.thetac=thetac_RK4(1:cycle,:);
-                    Traj_Stb.omegac=omega_RK4-omegacoi_RK4*ones(1,ngen);
-                    Traj_Stb.theta=theta_RK4(1:cycle,:);
-                    Traj_Stb.omega=omega_RK4(1:cycle,:);
-                end
-            else
-                if(Stb.n_unstbmin>Stb.n_current)    % for initialization
-                    Stb.n_unstbmin=Stb.n_current;                    
-                    Traj_Unstb.thetac=thetac_RK4(1:cycle,:);
-                    Traj_Unstb.omegac=omega_RK4(1:cycle,:)-omegacoi_RK4(1:cycle)*ones(1,ngen);
-                    Traj_Unstb.theta=theta_RK4(1:cycle,:);
-                    Traj_Unstb.omega=omega_RK4(1:cycle,:);
-                end
+    while(flag_changeunit==0)
+        delta0=thetac_fault(Stb.n_current,:);
+        omega0=omega_fault(Stb.n_current,:);
+        [theta_RK4,omega_RK4,thetac_RK4,omegacoi_RK4,Pe,cycle,flag_unstb]=Fun_TrajIter_StableCheck_SRF(Tpostmax,Tunit,postfault,preset,delta0,omega0,omegab);
+        
+        if(flag_unstb==0)
+            if(Stb.n_stbmax<Stb.n_current)
+                Stb.n_stbmax=Stb.n_current;
+                Traj_Stb.thetac=thetac_RK4(1:cycle,:);
+                Traj_Stb.omegac=omega_RK4-omegacoi_RK4*ones(1,ngen);
+                Traj_Stb.theta=theta_RK4(1:cycle,:);
+                Traj_Stb.omega=omega_RK4(1:cycle,:);
             end
-            if(Stb.n_unstbmin-Stb.n_stbmax<=Changeunit.Currentunit)
-                flag_changeunit=1;
-                if(n_step<Changeunit.n_stepchange)
-                    Changeunit.Nextunit=Changeunit.candidate(n_step+1);
-                    Stb.n_current=(fix(Stb.n_stbmax/Changeunit.Nextunit)+1)*Changeunit.Nextunit;
-                else
-                    CCT=Stb.n_stbmax*Changeunit.candidate(n_step)*Tunitmin;
-                    flag_CCT=1;
-                end
-            end
-            if(Stb.n_unstbmin<=Stb.n_stbmax)
-                error('Stb.n_unstbmin<=Stb.n_stbmax');
-            end
-            if(flag_changeunit==0)
-                if(flag_unstb==0)
-                    Stb.n_current=Stb.n_current+Changeunit.Currentunit;
-                else
-                    Stb.n_current=Stb.n_current-Changeunit.Currentunit;
-                if(Stb.n_current>cycle)
-                    error('Stb.n_current>cycle');
-                elseif(Stb.n_current<1)
-                    error('Stb.n_current<1');
-                end
+        else
+            if(Stb.n_unstbmin>Stb.n_current)    % for initialization
+                Stb.n_unstbmin=Stb.n_current;                    
+                Traj_Unstb.thetac=thetac_RK4(1:cycle,:);
+                Traj_Unstb.omegac=omega_RK4(1:cycle,:)-omegacoi_RK4(1:cycle)*ones(1,ngen);
+                Traj_Unstb.theta=theta_RK4(1:cycle,:);
+                Traj_Unstb.omega=omega_RK4(1:cycle,:);
             end
         end
+        if(Stb.n_unstbmin-Stb.n_stbmax<=Changeunit.Currentunit)
+            flag_changeunit=1;
+            if(n_step<Changeunit.n_stepchange)
+                Changeunit.Nextunit=Changeunit.candidate(n_step+1);
+                Stb.n_current=(fix(Stb.n_stbmax/Changeunit.Nextunit)+1)*Changeunit.Nextunit;
+            else
+                CCT=Stb.n_stbmax*Changeunit.candidate(n_step)*Tunitmin;
+                flag_CCT=1;
+            end
+        end
+        if(Stb.n_unstbmin<=Stb.n_stbmax)
+            error('Stb.n_unstbmin<=Stb.n_stbmax');
+        end
+        if(flag_changeunit==0)
+            if(flag_unstb==0)
+                Stb.n_current=Stb.n_current+Changeunit.Currentunit;
+            else
+                Stb.n_current=Stb.n_current-Changeunit.Currentunit;
+            if(Stb.n_current>cycle)
+                error('Stb.n_current>cycle');
+            elseif(Stb.n_current<1)
+                error('Stb.n_current<1');
+            end
+            end
+        end
+    end    
     end
-    
-    end
-        if(flag_CCT==1)
+    if(flag_CCT==1)
         Exit_thetac=fault.traj.thetac(Stb.n_stbmax,:);
         Exit_omegac=fault.traj.omegac(Stb.n_stbmax,:);
         Exit_theta=fault.traj.theta(Stb.n_stbmax,:);

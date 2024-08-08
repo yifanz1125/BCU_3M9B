@@ -47,7 +47,7 @@ function [Ep1,Ep2,Ep3]=Fun_Cal_PotentialEnergy(preset,postfault,thetac_start,the
                 dtheta_i=thetac_end(i) -thetac_start(i);
                 dtheta_j=thetac_end(j) -thetac_start(j);
                 dtheta_ij=dtheta_i-dtheta_j;
-                if(abs(dtheta_ij)>1e-6) % 避免数值病态问题
+                if(abs(dtheta_ij)>1e-7) % 避免数值病态问题
                     adb=(dtheta_i+dtheta_j)/dtheta_ij;                
                 else
                     adb=dtheta_i+dtheta_j;

@@ -44,7 +44,7 @@ clear DT HT ngen
     plot(fault.traj.thetac(:,2),fault.traj.thetac(:,3),'-','LineWidth',1.5,'color',[200/255 200/255 200/255]);
     axis([0,2.5,0,3.5]);
     clear omega_RK4 omegac_RK4 theta_RK4 thetac_RK4
-    clear Tfault Tunit delta0 omega0
+    clear Tfault delta0 omega0
 %% Calculate MGP from exit point along boundary
     [MGP.thetac_MGP,MGP.num_Traj,MGP.flag_MGP,Normtt, norm_min]=Fun_Cal_MGP(escape.thetac,postfault,preset);
     strMGP=['Selected MGP is [' repmat('%1.4f ',1,numel(MGP.thetac_MGP)) ']\n'];
@@ -109,15 +109,31 @@ clear DT HT ngen
     strLyaCCT=['CCT(LEA) is ' repmat('%1.4f ',1,numel(Critical.LEA.CCT)) 's \n'];
     fprintf(strLyaCCT,Critical.LEA.CCT);
     clear strLyaCCT
-%% Calculate Real CCT
-    [Critical.REA.CCT,Critical.REA.Exit_thetac,Critical.REA.Exit_omegac,Critical.REA.Exit_theta,Critical.REA.Exit_omega,Critical.REA.flag_CCT,Critical.Traj.Stb,Critical.Traj.Unstb]=Fun_Cal_CCT_Real(fault,postfault,preset,Basevalue,Critical.LEA.CCT);
-%     [Critical.REA.CCT,Critical.REA.Exit_thetac,Critical.REA.Exit_omegac,Critical.REA.Exit_theta,Critical.REA.Exit_omega,Critical.REA.flag_CCT,Critical.Traj.Stb,Critical.Traj.Unstb]=Fun_Cal_CCT_Real(fault,postfault,preset,Basevalue,1e-4);
 
+    %% Calculate Real CCT
+    [Critical.REA.CCT,Critical.REA.Exit_thetac,Critical.REA.Exit_omegac,Critical.REA.Exit_theta,Critical.REA.Exit_omega,Critical.REA.flag_CCT,Critical.Traj.Stb,Critical.Traj.Unstb]=Fun_Cal_CCT_Real(fault,postfault,preset,Basevalue,Critical.LEA.CCT);
     strREACCT=['CCT(REA) is ' repmat('%1.4f ',1,numel(Critical.REA.CCT)) 's \n'];
     fprintf(strREACCT,Critical.REA.CCT);
     clear strREACCT
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Estimate damping energy
+%     Damping=zeros(ngen,1);
+%     Critical.LEA.Exit_omegacoi = Critical.LEA.Exit_omega*preset.m/sum(preset.m)/Basevalue.omegab - 1;
+%     for i=1:ngen
+%         Damping(i)=preset.d(i)*((postfault.CUEP_omegapu-1)*Basevalue.omegab + Critical.LEA.Exit_omegacoi*Basevalue.omegab )*(postfault.CUEP_delta(i)-Critical.LEA.Exit_thetac(i));
+%     end
+%     Damping_est = sum(Damping);
+%     E_critical=Critical.Ep + Damping_est;
+% 
+% 
+%     [Critical.DEA2.CCT,Critical.DEA2.Exit_thetac,Critical.DEA2.Exit_omegac,Critical.DEA2.Exit_theta,Critical.DEA2.Exit_omega,Critical.DEA2.flag_CCT]=Fun_Cal_CCT_Energy(E_critical,fault,postfault,preset);
+%     
+%     clear E_critical Ep
+%     strLyaCCT=['CCT(DEA2) is ' repmat('%1.4f ',1,numel(Critical.LEA.CCT)) 's \n'];
+%     fprintf(strLyaCCT,Critical.DEA2.CCT);
+%     clear strLyaCCT
+
+
 %% Critical Stable and Unstable trajectories
 %    [Energy,Group]=Fun_Cal_DampingEnergy(postfault,preset,Basevalue,Critical);
 %    E_critical=Critical.Ep+Energy.Ed_uniform+Energy.Ed_nonuniform;
@@ -127,8 +143,10 @@ clear DT HT ngen
 %    fprintf(strDEACCT,Critical.DEA.CCT);
 %    clear strDEACCT
 % 
-%    for i=1:5e4
+%    for i=1:20e4
 %        dis_CUEP(i)=norm(Critical.Traj.Stb.thetac(i,:)-postfault.CUEP_delta');
 %    end
-%    figure(8);
-%    plot(dis_CUEP);
+%    figure(12);
+%    plot(0:Tunit:Tunit*(20e4-1),dis_CUEP);
+
+

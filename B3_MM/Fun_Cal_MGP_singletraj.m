@@ -29,7 +29,8 @@ function  [thetac_iter,Normp,no_MGP,flag_normmin]=Fun_Cal_MGP_singletraj(thetac_
         Pcoi(tm)=sum(Pm)-sum(Pe(tm,:));
         if(tm<n_itermax)
             for i=1:ngen-1
-                thetac_tmp(i)=thetac_iter(tm,i)-thetac_iter(tm,ngen)+(Pm(i)-Pe(tm,i)-Pcoi(tm,1)/sum(m)*m(i))/d(i)*Tunit;
+                %thetac_tmp(i)=thetac_iter(tm,i)-thetac_iter(tm,ngen)+((Pm(i)-Pe(tm,i)-Pcoi(tm,1)/sum(m)*m(i))/d(i))*Tunit;
+                thetac_tmp(i)=thetac_iter(tm,i)-thetac_iter(tm,ngen)+((Pm(i)-Pe(tm,i)-Pcoi(tm,1)/sum(m)*m(i))/d(i)-(Pm(ngen)-Pe(tm,ngen)-Pcoi(tm,1)/sum(m)*m(ngen))/d(ngen))*Tunit;
             end
             thetac_tmp(ngen)=0;
             thetac_iter(tm+1,:)=thetac_tmp-m'*thetac_tmp'/sum(m);
