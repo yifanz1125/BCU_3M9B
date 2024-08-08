@@ -6,7 +6,7 @@
 omegab=Basevalue.omegab;
 %% Tfault and Tclear set
     Iter.Tfault=20;
-    Iter.Trecover=20.247;
+    Iter.Trecover=20.5149;
     Iter.Ttotal=100;
     Iter.Tunit=1e-4;
 %% iteration procedure
@@ -82,24 +82,17 @@ omegab=Basevalue.omegab;
 
     %% Trajectories in COI
     % thetac
-        figure(3);
+        figure;
         set(gca,'position',[0.115,0.12,0.815,0.84]);
         set(gcf,'position',[60 200 600 450]);
-%         for i=1:ngen
-%             plot(IterData.Tout,IterData.thetac(:,i),'linewidth',2,'color',[(50+20*i)/255 150/255 (250-20*i)/255]);    hold on;
-%     %         plot(IterData.Tout,IterData.thetac(:,2),'linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
-%     %         plot(IterData.Tout,IterData.thetac(:,3),'linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
-% %             xlim([19,25]);
-%             strlab(i)="M"+i;
-%             legend(strlab);
-%         end
+
         n_start=cycle_pre-fix(10/Iter.Tunit)+1;
-        n_end=cycle_pre+fix(40/Iter.Tunit);
+        n_end=cycle_pre+fix(20/Iter.Tunit);
         
         plot(IterData.Tout(n_start:n_end),IterData.thetac((n_start:n_end),1),'linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
         plot(IterData.Tout(n_start:n_end),IterData.thetac((n_start:n_end),2),'linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
         plot(IterData.Tout(n_start:n_end),IterData.thetac((n_start:n_end),3),'linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
-        %plot(IterData.Tout(n_start:n_end),IterData.deltacd((n_start:n_end),1),'linewidth',2,'color',[0/255 0/255 0/255]);    hold on;
+        plot(IterData.Tout(n_start:n_end),IterData.deltacd((n_start:n_end),1),'linewidth',2,'color',[200/255 200/255 200/255]);    hold on;
         
         grid on;    grid minor;
         ylim([-2,4]);
@@ -124,76 +117,9 @@ omegab=Basevalue.omegab;
         ax.FontSize=14;
         xlabel('Time(s)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[xlab_x,xlab_y,-1]);
         ylabel('\delta_c(rad)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[ylab_x,ylab_y,-1]);
-%         legend('\theta_1','\theta_2','\theta_3');
 
-    % omega
-%         figure(2);
-%         set(gca,'position',[0.115,0.12,0.815,0.84]);
-%         set(gcf,'position',[60 200 600 450]);
-%         for i=1:ngen
-%             plot(IterData.Tout,IterData.omega(:,i),'linewidth',2,'color',[(50+20*i)/255 150/255 (250-20*i)/255]);    hold on;
-%     %         plot(IterData.Tout,IterData.omega(:,2),'linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
-%     %         plot(IterData.Tout,IterData.omega(:,3),'linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
-%             strlab(i)="M"+i;
-%             legend(strlab);
-%         end
-%         grid on;    grid minor;
-%         % xlabel ylabel position
-% %         xlim([19,25]);
-%         yl=ylim;
-%         ymin=yl(1,1);
-%         ymax=yl(1,2);
-%         xl=xlim;
-%         xmin=xl(1,1);
-%         xmax=xl(1,2);
-%         ylab_x=xmin-(xmax-xmin)/12;
-%         ylab_y=(ymax+ymin)/2;
-%         xlab_x=(xmax+xmin)/2;
-%         xlab_y=ymin-(ymax-ymin)/15;
-%         % during-fault area identification
-%         trange=[Iter.Tfault,Iter.Trecover,Iter.Trecover,Iter.Tfault];   thetarange=[ymin,ymin,ymax,ymax];
-%         fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5); hold on;
-%         ylim([ymin,ymax]);
-%         % axis font
-%         ax=gca;
-%         ax.FontName='Arial';
-%         ax.FontSize=14;
-%         xlabel('Time(s)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[xlab_x,xlab_y,-1]);
-%         ylabel('\omega(pu)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[ylab_x,ylab_y,-1]);
-% %         legend('\omega_1','\omega_2','\omega_3');
 
-%     % theta
-%         figure(3);
-%         set(gca,'position',[0.115,0.12,0.815,0.84]);
-%         set(gcf,'position',[60 200 600 450]);
-%         plot(IterData.Tout,IterData.theta(:,1),'linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
-%         plot(IterData.Tout,IterData.theta(:,2),'linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
-%         plot(IterData.Tout,IterData.theta(:,3),'linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
-% %         xlim([19,23]);
-%         grid on;    grid minor;
-%         % xlabel ylabel position
-%         yl=ylim;
-%         ymin=yl(1,1);
-%         ymax=yl(1,2);
-%         xl=xlim;
-%         xmin=xl(1,1);
-%         xmax=xl(1,2);
-%         ylab_x=xmin-(xmax-xmin)/15;
-%         ylab_y=(ymax+ymin)/2;
-%         xlab_x=(xmax+xmin)/2;
-%         xlab_y=ymin-(ymax-ymin)/15;
-%         % during-fault area identification
-%         trange=[Iter.Tfault,Iter.Trecover,Iter.Trecover,Iter.Tfault];   thetarange=[ymin,ymin,ymax,ymax];
-%         fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5); hold on;
-%         % axis font
-%         ax=gca;
-%         ax.FontName='Arial';
-%         ax.FontSize=14;
-%         xlabel('Time(s)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[xlab_x,xlab_y,-1]);
-%         ylabel('\theta_c(rad)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[ylab_x,ylab_y,-1]);
-%         legend('\theta_1','\theta_2','\theta_3');
-
-        figure(4);
+        figure;
         set(gca,'position',[0.115,0.12,0.815,0.84]);
         set(gcf,'position',[60 200 600 450]);
         plot(IterData.Tout(n_start:n_end),IterData.omegac((n_start:n_end),1),'linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
@@ -201,11 +127,11 @@ omegab=Basevalue.omegab;
         plot(IterData.Tout(n_start:n_end),IterData.omegac((n_start:n_end),3),'linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
         
         plot(IterData.Tout(n_start:n_end),IterData.omegacoi((n_start:n_end),1)-1,'linewidth',2,'color',[0/255 0/255 0/255]);    hold on;
-%         plot(IterData.Tout(n_start:n_end),IterData.omegacd((n_start:n_end),1),'linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
+        plot(IterData.Tout(n_start:n_end),IterData.omegacd((n_start:n_end),1),'linewidth',2,'color',[200/255 200/255 200/255]);    hold on;
+
         grid on;    grid minor;
         ylim([-0.03,0.05]);
-        % xlabel ylabel position
-%         xlim([19,25]);
+
         yl=ylim;
         ymin=yl(1,1);
         ymax=yl(1,2);
@@ -226,5 +152,199 @@ omegab=Basevalue.omegab;
         ax.FontSize=14;
         xlabel('Time(s)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[xlab_x,xlab_y,-1]);
         ylabel('\omega(pu)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[ylab_x,ylab_y,-1]);
+%% Calculate Energy
+    no_duration = n_end - n_start + 1;
+    Pm=preset.Pmpu;
+    E=preset.Epu;
+    m=preset.m;
+    d=preset.d;
+    Yred_post=postfault.Yred;
+    G_post=real(Yred_post);
+    B_post=imag(Yred_post);
+    % Potential energy
+        [Ep_tmp(1),Ep_tmp(2),Ep_tmp(3)]=Fun_Cal_PotentialEnergy(preset,postfault,postfault.SEP_delta,IterData.thetac(n_start,:)');
+        Ep_start=sum(Ep_tmp);
+        Ep_lossy_start=Ep_tmp(3);
+        Ep_mag_start=Ep_tmp(2);
+        clear Ep_tmp
+        [Ep_tmp(1),Ep_tmp(2),Ep_tmp(3)]=Fun_Cal_PotentialEnergy(preset,postfault,postfault.SEP_delta,IterData.thetac(cycle_pre+cycle_fault,:)');
+        Ep_end=sum(Ep_tmp);   clear Ep_tmp
+        [Ep_tmp(1),Ep_tmp(2),Ep_tmp(3)]=Fun_Cal_PotentialEnergy(preset,postfault,postfault.SEP_delta,postfault.CUEP_delta);
+        Ep_CUEP=sum(Ep_tmp);   clear Ep_tmp
+        Ep=zeros(no_duration,1);
+        Ep_path=zeros(no_duration,1);
+        Ep_mag=zeros(no_duration,1);
+        EP_trapezoidal=zeros(no_duration,1);
+        EP_trapezoidal_multi=zeros(no_duration,1);
+        preset.PathEnergyCal=0;
+        for tm=1:size(Ep,1)
+            [Ep_tmp(1),Ep_tmp(2),Ep_tmp(3)]=Fun_Cal_PotentialEnergy(preset,postfault,postfault.SEP_delta,IterData.thetac(n_start-1+tm,:)');
+            Ep_path(tm)=Ep_tmp(3);
+            Ep_mag(tm)=Ep_tmp(2);
+            Ep(tm)=sum(Ep_tmp);   clear Ep_tmp
+        end
+        preset.PathEnergyCal=1;
+        for tm=1:size(Ep,1)
+            [Ep_tmp(1),Ep_tmp(2),Ep_tmp(3)]=Fun_Cal_PotentialEnergy(preset,postfault,postfault.SEP_delta,IterData.thetac(n_start-1+tm,:)');
+            EP_trapezoidal(tm)=Ep_tmp(3);   clear Ep_tmp
+        end
+        preset.PathEnergyCal=10;
+        for tm=1:size(Ep,1)
+            [Ep_tmp(1),Ep_tmp(2),Ep_tmp(3)]=Fun_Cal_PotentialEnergy(preset,postfault,postfault.SEP_delta,IterData.thetac(n_start-1+tm,:)');
+            EP_trapezoidal_multi(tm)=Ep_tmp(3);   clear Ep_tmp
+        end
+        preset.PathEnergyCal=0;
+     % Kinetic energy
+        Ek0=zeros(ngen,1);
+        Eke=zeros(ngen,1);
+        for i=1:ngen
+            Ek0(i)=0.5*m(i)*(IterData.omegac(n_start,i)*omegab)^2;
+            Eke(i)=0.5*m(i)*(IterData.omegac(cycle_pre+cycle_fault,i)*omegab)^2;
+        end
+        Ek_start=sum(Ek0);
+        Ek_end=sum(Eke);
+    % Damping energy in iteration
+        % for Potential energy error display
+        Ed_non_record=zeros(no_duration,1);
+        Ed_un_record=zeros(no_duration,1);
+        Ep_lossy_iter=zeros(no_duration,1);
+        Ep_mag_iter=zeros(no_duration,1);
+        Ep_iter_record=zeros(no_duration,1);
+        P_un_record=zeros(no_duration,1);
+        P_non_record=zeros(no_duration,1);
+        Ep_iter_record(1)=Ep_start;   
+        Ep_lossy_iter(1)=Ep_lossy_start;
+        Ep_mag_iter(1)=Ep_mag_start;
+        Ek=zeros(no_duration,1);
+        Ek(1)=Ek_start;
+        Err_step=zeros(no_duration,1);
+        Err_step_exp=zeros(no_duration,1);
+        D_un_record=zeros(no_duration,1);
 
-        
+        Pe_pre=zeros(ngen,1);
+        D_un_critical = preset.d'*(IterData.omegacoi(cycle_pre+cycle_fault+1,1)*omegab-omegab+postfault.SEP_omegapu*omegab-omegab)*(postfault.CUEP_delta-postfault.SEP_delta)/2;
+        for tm=2:no_duration
+            ddelta_tmp=IterData.thetac(n_start-1+tm,:)-IterData.thetac(n_start-1+tm-1,:);
+            Pe=zeros(ngen,1);
+            Pe_lossy=zeros(ngen,1);  % lossy dispattive energy
+            Pe_mag=zeros(ngen,1);   % Pe relevant to line inductance
+            Ed_un=zeros(ngen,1);
+            Ed_un_this=zeros(ngen,1);
+            Ed_non=zeros(ngen,1);
+            Ed_non_this=zeros(ngen,1);
+            Pd_un=zeros(ngen,1);
+            Pd_non=zeros(ngen,1);
+            Ep_iter_gen=zeros(ngen,1);
+            D_non_gen=zeros(ngen,1);
+            for i=1:ngen
+                for j=1:ngen
+                    delta=IterData.thetac(n_start-1+tm,i)-IterData.thetac(n_start-1+tm,j);
+                    Pe(i)=Pe(i)+E(i)*E(j)*B_post(i,j)*sin(delta)+E(i)*E(j)*G_post(i,j)*cos(delta);
+                    if(i~=j)
+                    Pe_lossy(i)=Pe_lossy(i)+E(i)*E(j)*G_post(i,j)*cos(delta);
+                    Pe_mag(i)=Pe_mag(i)+E(i)*E(j)*B_post(i,j)*sin(delta);
+                    end
+                end
+            end
+
+            if tm==2
+                Pe_pre=Pe;
+            end
+
+            for i=1:ngen
+                Ed_un(i)=preset.d(i)*IterData.omegac(n_start-1+tm-1,i)*omegab*ddelta_tmp(i);
+                Ed_un_this(i)=preset.d(i)*IterData.omegac(n_start-1+tm,i)*omegab*ddelta_tmp(i);
+                Pd_un(i)=-preset.d(i)*(IterData.omegac(n_start-1+tm-1,i)*omegab)^2;
+                Ed_non(i)=preset.d(i)*(IterData.omegacoi(n_start-1+tm-1,1)*omegab-omegab)*ddelta_tmp(i);
+                Ed_non_this(i)=preset.d(i)*(IterData.omegacoi(n_start-1+tm,1)*omegab-omegab)*ddelta_tmp(i);
+                Pd_non(i)=-preset.d(i)*(IterData.omegacoi(n_start-1+tm-1,1)*omegab-omegab)*(IterData.omegac(n_start-1+tm-1,i)*omegab);
+                Ep_iter_gen(i)=(Pm(i)-Pe(i)+Pm(i)-Pe_pre(i))/2*ddelta_tmp(i);
+                Ek(tm)=Ek(tm)+0.5*m(i)*(IterData.omegac(n_start+tm-1,i)*omegab)^2;
+                D_non_gen(i) = preset.d(i)*(IterData.omegacoi(n_start-1+tm-1,1)*omegab-omegab+postfault.SEP_omegapu*omegab-omegab)*(IterData.thetac(n_start-1+tm-1,i)-postfault.SEP_delta(i))/2;
+            end
+            Pe_pre = Pe;
+
+            Ep_lossy_iter(tm)=Ep_lossy_iter(tm-1)+ddelta_tmp*Pe_lossy;   
+            Ep_mag_iter(tm)=Ep_mag_iter(tm-1)+ddelta_tmp*Pe_mag;          
+            Ep_iter_record(tm)=Ep_iter_record(tm-1)-sum(Ep_iter_gen);%-ddelta_tmp*(Pm-Pe);
+            Ed_non_record(tm)=Ed_non_record(tm-1)+(sum(Ed_non)+sum(Ed_non_this))/2;
+            Ed_un_record(tm)=Ed_un_record(tm-1)+(sum(Ed_un)+sum(Ed_un_this))/2;
+            Err_step(tm)=Ep_iter_record(tm)+Ed_un_record(tm)+Ed_non_record(tm)+Ek(tm)-Ek(1);
+            Err_step_exp(tm)=Ep(tm)+Ed_un_record(tm)+Ed_non_record(tm)+Ek(tm)-Ek(1);
+            P_un_record(tm)=sum(Pd_un);
+            P_non_record(tm)=sum(Pd_non);
+            D_un_record(tm)=sum(D_non_gen);
+        end                                                  
+
+    %% plot
+
+    figure;
+    plot(IterData.Tout(n_start:n_end),Ep_path,'color','r','LineWidth',2);  hold on;
+    plot(IterData.Tout(n_start:n_end),EP_trapezoidal,'color','g','LineWidth',2,'LineStyle','--');  hold on;
+    plot(IterData.Tout(n_start:n_end),EP_trapezoidal_multi,'color','y','LineWidth',2,'LineStyle','--');  hold on;
+    plot(IterData.Tout(n_start:n_end),Ep_lossy_iter,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+    legend('Potential Ray','Potential trapezoidal','Potential multistep trapezoidal','Iter');
+    title('lossy energy');
+    figure;
+    plot(IterData.Tout(n_start:n_end),Ep_mag,'color','r','LineWidth',2);  hold on;
+    plot(IterData.Tout(n_start:n_end),Ep_mag_iter,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+    legend('Potential','Iter');
+    title('magnetic energy');
+    figure;
+    plot(IterData.Tout(n_start:n_end),Ep_path-Ep_lossy_iter,'color','r','LineWidth',2);  hold on;
+    plot(IterData.Tout(n_start:n_end),Ep-Ep_iter_record,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+    legend('Lossy part err','Total err');
+    title('Error');  
+    figure;
+    plot(IterData.Tout(n_start:n_end),Ed_un_record,'color','r','LineWidth',2);  hold on;
+    plot(IterData.Tout(n_start:n_end),Ed_non_record,'color','b','LineWidth',2,'LineStyle','-');  hold on;
+    plot(IterData.Tout(n_start:n_end),Ed_non_record+Ed_un_record,'color','k','LineWidth',2,'LineStyle','--');  hold on;
+    plot(IterData.Tout(n_start:n_end),D_un_record,'color','m','LineWidth',2,'LineStyle','--');  hold on;
+    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+    legend('uniformed damping','non-uniformed damping','total','non-uniformed damping energy estimation');
+    title('Damping Energy');
+    figure;
+    plot(IterData.Tout(n_start:n_end),Ep+Ek,'color','r','LineWidth',2);  hold on;
+    plot(IterData.Tout(n_start:n_end),Ep_iter_record+Ek,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+    plot(IterData.Tout(n_start:n_end),Ep_CUEP*ones(size(IterData.Tout(n_start:n_end))),'color','k','LineWidth',2,'LineStyle','--');  hold on;
+    plot(IterData.Tout(n_start:n_end),Ep+Ek+D_un_record,'color','m','LineWidth',2,'LineStyle','--');  hold on;
+    plot(IterData.Tout(n_start:n_end),(Ep_CUEP+D_un_critical)*ones(size(IterData.Tout(n_start:n_end))),'color','k','LineWidth',2,'LineStyle',':');  hold on;
+    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+    legend('Expression','Iteration','Critical energy','Revised Energy Function','Revised Critical energy');
+    title('Energy Function'); 
+    figure;
+    plot(IterData.Tout(n_start:n_end),P_un_record,'color','r','LineWidth',2);  hold on;
+    plot(IterData.Tout(n_start:n_end),P_non_record,'color','g','LineWidth',2);  hold on;
+    plot(IterData.Tout(n_start:n_end),P_non_record+P_un_record,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+    legend('Uniform','Non-uniform','total');
+    title('Derivative of damping energy'); 
+    figure;
+    plot(IterData.Tout(n_start:n_end),Err_step_exp,'color','r','LineWidth',2);  hold on;
+    plot(IterData.Tout(n_start:n_end),Err_step,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+    legend('Expression','Iteration');
+    title('Total Energy Change');  
+
+
+
+
+
+
+
+
+
+
+
+
+

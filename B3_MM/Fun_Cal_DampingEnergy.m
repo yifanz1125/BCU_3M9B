@@ -20,8 +20,9 @@ function [Energy,Group]=Fun_Cal_DampingEnergy(postfault,preset,Basevalue,Critica
     cycle_stb=size(Critical.Traj.Stb.thetac,1);
     cycle_unstb=size(Critical.Traj.Unstb.thetac,1);
 %% active length of trajectories (Tunit=1e-4)
-    cycle_stb=5e4;
-    cycle_unstb=5e4;
+    Tunit=1e-4;
+    cycle_stb=10e4;
+    cycle_unstb=10e4;
 
     Critical.Traj.Stb.thetac=Critical.Traj.Stb.thetac(1:cycle_stb,:);
     Critical.Traj.Stb.omegac=Critical.Traj.Stb.omegac(1:cycle_stb,:);
@@ -127,15 +128,15 @@ function [Energy,Group]=Fun_Cal_DampingEnergy(postfault,preset,Basevalue,Critica
 %         clear num
     % for 10M
     for no_group=1:3
-        figure(1);
-        plot(Group.delta_stb(:,no_group)); hold on;
-        plot(Group.CUEP(no_group)*ones(cycle_stb,1),':');    hold on;
+        figure(3);
+        plot(0:Tunit:Tunit*(cycle_stb-1),Group.delta_stb(:,no_group)); hold on;
+        plot(0:Tunit:Tunit*(cycle_stb-1),Group.CUEP(no_group)*ones(cycle_stb,1),':');    hold on;
         strlb(2*no_group-1)="group"+no_group;
         strlb(2*no_group)="CUEP"+no_group;
         legend(strlb);        
-        figure(3)
-        plot(Group.delta_unstb(:,no_group)); hold on;
-        plot(Group.CUEP(no_group)*ones(cycle_stb,1),':');    hold on;
+        figure(4)
+        plot(0:Tunit:Tunit*(cycle_unstb-1),Group.delta_unstb(:,no_group)); hold on;
+        plot(0:Tunit:Tunit*(cycle_unstb-1),Group.CUEP(no_group)*ones(cycle_stb,1),':');    hold on;
         strlb(no_group*2-1)="group"+no_group;
         strlb(no_group*2)="CUEP"+no_group;
         legend(strlb);
@@ -219,7 +220,7 @@ function [Energy,Group]=Fun_Cal_DampingEnergy(postfault,preset,Basevalue,Critica
        fprintf('\n');
         no_overwrite=input('Overwrite critical point:');
         if(isempty(no_overwrite)==0)
-            if(no_overwrite>0&&no_overwrite<cycle_stb)
+            if(no_overwrite>0 && no_overwrite<=cycle_stb)
                 no_critical=no_overwrite;
             end
         end
@@ -236,15 +237,26 @@ function [Energy,Group]=Fun_Cal_DampingEnergy(postfault,preset,Basevalue,Critica
         Energy.Ep_end=sum(Ep_tmp);   clear Ep_tmp
         [Ep_tmp(1),Ep_tmp(2),Ep_tmp(3)]=Fun_Cal_PotentialEnergy(preset,postfault,postfault.SEP_delta,postfault.CUEP_delta);
         Energy.Ep_CUEP=sum(Ep_tmp);   clear Ep_tmp
-        Energy.Ep=zeros(2e4,1);
-        Energy.Ep_path=zeros(2e4,1);
-        Energy.Ep_mag=zeros(2e4,1);
+        Energy.Ep=zeros(no_critical,1);
+        Energy.Ep_path=zeros(no_critical,1);
+        Energy.Ep_mag=zeros(no_critical,1);
         for tm=1:size(Energy.Ep,1)
             [Ep_tmp(1),Ep_tmp(2),Ep_tmp(3)]=Fun_Cal_PotentialEnergy(preset,postfault,postfault.SEP_delta,Critical.Traj.Stb.thetac(tm,:)');
             Energy.Ep_path(tm)=Ep_tmp(3);
             Energy.Ep_mag(tm)=Ep_tmp(2);
             Energy.Ep(tm)=sum(Ep_tmp);   clear Ep_tmp
         end
+        preset.PathEnergyCal=1;
+        for tm=1:size(Energy.Ep,1)
+            [Ep_tmp(1),Ep_tmp(2),Ep_tmp(3)]=Fun_Cal_PotentialEnergy(preset,postfault,postfault.SEP_delta,Critical.Traj.Stb.thetac(tm,:)');
+            EP_trapezoidal(tm)=Ep_tmp(3);   clear Ep_tmp
+        end
+        preset.PathEnergyCal=10;
+        for tm=1:size(Energy.Ep,1)
+            [Ep_tmp(1),Ep_tmp(2),Ep_tmp(3)]=Fun_Cal_PotentialEnergy(preset,postfault,postfault.SEP_delta,Critical.Traj.Stb.thetac(tm,:)');
+            EP_trapezoidal_multi(tm)=Ep_tmp(3);   clear Ep_tmp
+        end
+        preset.PathEnergyCal=0;
     %% Kinetic energy
         Ek0=zeros(ngen,1);
         Eke=zeros(ngen,1);
@@ -255,25 +267,32 @@ function [Energy,Group]=Fun_Cal_DampingEnergy(postfault,preset,Basevalue,Critica
         Energy.Ek_start=sum(Ek0);
         Energy.Ek_end=sum(Eke);
    %% Damping energy in iteration
-        Ed_un=zeros(ngen,1);
-        Ed_non=0;
-        Ep_iter=zeros(ngen,1);
         % for Potential energy error display (in Fig5-7)
+        Ed_non_record=zeros(no_critical,1);
+        Ed_un_record=zeros(no_critical,1);
         Ep_lossy_iter=zeros(no_critical,1);
         Ep_mag_iter=zeros(no_critical,1);
         Ep_iter_record=zeros(no_critical,1);
+        P_un_record=zeros(no_critical,1);
+        P_non_record=zeros(no_critical,1);
         Ep_iter_record(1)=Energy.Ep_start;   
         Ep_lossy_iter(1)=Ep_lossy_start;
         Ep_mag_iter(1)=Ep_mag_start;
         Ek=zeros(no_critical,1);
         Ek(1)=Energy.Ek_start;
         Err_step=zeros(no_critical,1);
+        Err_step_exp=zeros(no_critical,1);
 
         for tm=2:no_critical
             ddelta_tmp=Critical.Traj.Stb.thetac(tm,:)-Critical.Traj.Stb.thetac(tm-1,:);
             Pe=zeros(ngen,1);
             Pe_lossy=zeros(ngen,1);  % lossy dispattive energy
             Pe_mag=zeros(ngen,1);   % Pe relevant to line inductance
+            Ed_un=zeros(ngen,1);
+            Ed_non=zeros(ngen,1);
+            Pd_un=zeros(ngen,1);
+            Pd_non=zeros(ngen,1);
+            Ep_iter_gen=zeros(ngen,1);
             for i=1:ngen
                 for j=1:ngen
                     delta=Critical.Traj.Stb.thetac(tm,i)-Critical.Traj.Stb.thetac(tm,j);
@@ -286,41 +305,70 @@ function [Energy,Group]=Fun_Cal_DampingEnergy(postfault,preset,Basevalue,Critica
             end
 
             for i=1:ngen
-                Ed_un(i)=Ed_un(i)+preset.d(i)*Critical.Traj.Stb.omegac(tm-1,i)*ddelta_tmp(i);
-                Ed_non=Ed_non+preset.d(i)*(Critical.Traj.Stb.omegacoi(tm-1,1)-omegab)*ddelta_tmp(i);
-                Ep_iter(i)=Ep_iter(i)-(Pm(i)-Pe(i))*ddelta_tmp(i);
+                Ed_un(i)=preset.d(i)*Critical.Traj.Stb.omegac(tm-1,i)*ddelta_tmp(i);
+                Pd_un(i)=-preset.d(i)*Critical.Traj.Stb.omegac(tm-1,i)^2;
+                Ed_non(i)=preset.d(i)*(Critical.Traj.Stb.omegacoi(tm-1,1)-omegab)*ddelta_tmp(i);
+                Pd_non(i)=-preset.d(i)*(Critical.Traj.Stb.omegacoi(tm-1,1)-omegab)*Critical.Traj.Stb.omegac(tm-1,i);
+                Ep_iter_gen(i)=(Pm(i)-Pe(i))*ddelta_tmp(i);
                 Ek(tm)=Ek(tm)+0.5*m(i)*Critical.Traj.Stb.omegac(tm,i)^2;
             end
-            Ep_lossy_iter(tm)=Ep_lossy_iter(tm-1)+ddelta_tmp*Pe_lossy;
+
+            Ep_lossy_iter(tm)=Ep_lossy_iter(tm-1)+ddelta_tmp*Pe_lossy;   
             Ep_mag_iter(tm)=Ep_mag_iter(tm-1)+ddelta_tmp*Pe_mag;          
-            Ep_iter_record(tm)=Ep_iter_record(tm-1)-ddelta_tmp*(Pm-Pe);
-          
-            Err_step(tm)=sum(Ep_iter)+sum(Ed_un)+Ed_non+Ek(tm)-Ek(1);
+            Ep_iter_record(tm)=Ep_iter_record(tm-1)-sum(Ep_iter_gen);%-ddelta_tmp*(Pm-Pe);
+            Ed_non_record(tm)=Ed_non_record(tm-1)+sum(Ed_non);
+            Ed_un_record(tm)=Ed_un_record(tm-1)+sum(Ed_un);
+            Err_step(tm)=Ep_iter_record(tm)+Ed_un_record(tm)+Ed_non_record(tm)+Ek(tm)-Ek(1);
+            Err_step_exp(tm)=Energy.Ep(tm)+Ed_un_record(tm)+Ed_non_record(tm)+Ek(tm)-Ek(1);
+            P_un_record(tm)=sum(Pd_un);
+            P_non_record(tm)=sum(Pd_non);
         end
 
+        Energy.Ep_iter=Ep_iter_record(no_critical);
+        Energy.Ed_uniform=Ed_un_record(no_critical);
+        Energy.Ed_nonuniform=Ed_non_record(no_critical);
 
-
-        Energy.Ep_iter=sum(Ep_iter);
-        Energy.Ed_uniform=sum(Ed_un);
-        Energy.Ed_nonuniform=Ed_non;
 
 
     
-    figure(5);
-    plot(Energy.Ep_path(1:no_critical),'color','r','LineWidth',2);  hold on;
-    plot(Ep_lossy_iter,'color','b','LineWidth',2,'LineStyle','--');  hold on;
-    legend('Potential','Iter');
-    title('lossy energy');
-    figure(6);
-    plot(Energy.Ep_mag(1:no_critical),'color','r','LineWidth',2);  hold on;
-    plot(Ep_mag_iter,'color','b','LineWidth',2,'LineStyle','--');  hold on;
-    legend('Potential','Iter');
-    title('magnetic energy');
-    figure(7);
-    plot(Energy.Ep_path(1:no_critical)-Ep_lossy_iter,'color','r','LineWidth',2);  hold on;
-    plot(Energy.Ep(1:no_critical)-Ep_iter_record,'color','b','LineWidth',2,'LineStyle','--');  hold on;
-    legend('Lossy part err','Total err');
-    title('Error');    
+%     figure(5);
+%     plot(0:Tunit:Tunit*(no_critical-1),Energy.Ep_path(1:no_critical),'color','r','LineWidth',2);  hold on;
+%     plot(0:Tunit:Tunit*(no_critical-1),EP_trapezoidal(1:no_critical),'color','g','LineWidth',2);  hold on;
+%     plot(0:Tunit:Tunit*(no_critical-1),EP_trapezoidal_multi(1:no_critical),'color','y','LineWidth',2);  hold on;
+%     plot(0:Tunit:Tunit*(no_critical-1),Ep_lossy_iter,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+%     legend('Potential Ray','Potential trapezoidal','Potential multistep trapezoidal','Iter');
+%     title('lossy energy');
+%     figure(6);
+%     plot(0:Tunit:Tunit*(no_critical-1),Energy.Ep_mag(1:no_critical),'color','r','LineWidth',2);  hold on;
+%     plot(0:Tunit:Tunit*(no_critical-1),Ep_mag_iter,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+%     legend('Potential','Iter');
+%     title('magnetic energy');
+%     figure(7);
+%     plot(0:Tunit:Tunit*(no_critical-1),Energy.Ep_path(1:no_critical)-Ep_lossy_iter,'color','r','LineWidth',2);  hold on;
+%     plot(0:Tunit:Tunit*(no_critical-1),Energy.Ep(1:no_critical)-Ep_iter_record,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+%     legend('Lossy part err','Total err');
+%     title('Error');  
+%     figure(8);
+%     plot(0:Tunit:Tunit*(no_critical-1),Ed_un_record,'color','r','LineWidth',2);  hold on;
+%     plot(0:Tunit:Tunit*(no_critical-1),Ed_non_record,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+%     legend('uniformed damping','non-uniformed damping');
+%     title('Damping Energy');
+%     figure(9);
+%     plot(0:Tunit:Tunit*(no_critical-1),Energy.Ep(1:no_critical)+Ek(1:no_critical),'color','r','LineWidth',2);  hold on;
+%     plot(0:Tunit:Tunit*(no_critical-1),Ep_iter_record(1:no_critical)+Ek(1:no_critical),'color','b','LineWidth',2,'LineStyle','--');  hold on;
+%     legend('Expression','Iteration');
+%     title('Energy Function'); 
+%     figure(10);
+%     plot(0:Tunit:Tunit*(no_critical-1),P_un_record(1:no_critical),'color','r','LineWidth',2);  hold on;
+%     plot(0:Tunit:Tunit*(no_critical-1),P_non_record(1:no_critical),'color','g','LineWidth',2);  hold on;
+%     plot(0:Tunit:Tunit*(no_critical-1),P_non_record(1:no_critical)+P_un_record(1:no_critical),'color','b','LineWidth',2,'LineStyle','--');  hold on;
+%     legend('Uniform','Non-uniform','total');
+%     title('Derivative of damping energy'); 
+%     figure(11);
+%     plot(0:Tunit:Tunit*(no_critical-1),Err_step_exp(1:no_critical),'color','r','LineWidth',2);  hold on;
+%     plot(0:Tunit:Tunit*(no_critical-1),Err_step(1:no_critical),'color','b','LineWidth',2,'LineStyle','--');  hold on;
+%     legend('Expression','Iteration');
+%     title('Total Energy Change');  
 
 end
 
