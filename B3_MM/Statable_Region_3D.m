@@ -8,8 +8,8 @@ Pm1 = 1.33;
 Pm2 = 0.6;
 H1 = 0.5;
 H2 = 0.5;
-D1 = 1;
-D2 = 1.5;
+D1 = 0.4;
+D2 = 0.5;
 Y12 = 1/(Z1+Z2+Z1*Z2/Zl);
 Y1 = 1/(Z1+Zl+Z1*Zl/Z2);
 Y2 = 1/(Z2+Zl+Z2*Zl/Z1);
@@ -137,9 +137,9 @@ for m = 1 : length(ep_set_ext)
         perturb = 5e-1;
 
         if flag == 1
-            for alpha = (0:0.01:1)*2*pi
+            for alpha = (0:0.005:1)*2*pi
                 vp = v(:,1)*sin(alpha) + v(:,2)*cos(alpha);
-                [~ , x_all] = ode45(@f_backward,[0,4],xep+vp*perturb);
+                [~ , x_all] = ode45(@f_backward,[0,10],xep+vp*perturb);
                 plot3(x_all(:,1),x_all(:,2),x_all(:,3),color_code{n});
             end
             n = n + 1;
@@ -155,11 +155,23 @@ for m = 1 : length(ep_set_ext)
     end
 end
 % plot trajectory
-[tt , x_all] = ode78(@f_forward,[0,200],[-1.637, -6.87, 10],odeset('RelTol',1e-5));
-[tt2 , x_all2] = ode78(@f_forward,[0,200],[0.311, 4.75, 0],odeset('RelTol',1e-5));
+[tt , x_all] = ode78(@f_forward,[0,200],[-1.637, -6.87, -20],odeset('RelTol',1e-5));
+[tt2 , x_all2] = ode78(@f_forward,[0,200],[0.311-4*pi, 4.75, 10],odeset('RelTol',1e-5));
+[tt3 , x_all3] = ode78(@f_forward,[0,200],[-1.16, -9.67, -20],odeset('RelTol',1e-5));
+[tt4 , x_all4] = ode78(@f_forward,[0,200],[1.02, 2.11, 10],odeset('RelTol',1e-5));
+[tt5 , x_all5] = ode78(@f_forward,[0,200],[1.02, 1.11, -20],odeset('RelTol',1e-5));
+[tt6 , x_all6] = ode78(@f_forward,[0,1200],[-2.667, 0.045+1, -60],odeset('RelTol',1e-5));%[-2.667, 0.045+1, 80]
+[tt7 , x_all7] = ode78(@f_forward,[0,200],[-1, -1.807, 20],odeset('RelTol',1e-5));
+[tt8 , x_all8] = ode78(@f_forward,[0,200],[3, 0, 0],odeset('RelTol',1e-5));
 plot3(x_all(:,1),x_all(:,2),x_all(:,3),'black','linewidth',1.5);
 plot3(x_all2(:,1),x_all2(:,2),x_all2(:,3),'black','linewidth',1.5);
-axis([-2*pi 2*pi -15 5 -20 100]);
+plot3(x_all3(:,1),x_all3(:,2),x_all3(:,3),'black','linewidth',1.5);
+plot3(x_all4(:,1),x_all4(:,2),x_all4(:,3),'black','linewidth',1.5);
+plot3(x_all5(:,1),x_all5(:,2),x_all5(:,3),'black','linewidth',1.5);
+plot3(x_all6(:,1),x_all6(:,2),x_all6(:,3),'black','linewidth',1.5);
+plot3(x_all7(:,1),x_all7(:,2),x_all7(:,3),'black','linewidth',1.5);
+plot3(x_all8(:,1),x_all8(:,2),x_all8(:,3),'black','linewidth',1.5);
+axis([-2*pi 2*pi -15 10 -100 100]);
 end
 
 
