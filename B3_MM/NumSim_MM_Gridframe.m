@@ -335,6 +335,13 @@ omegab=Basevalue.omegab;
     fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
     legend('Expression','Iteration');
     title('Total Energy Change');  
+    figure;
+    plot(IterData.deltacd((n_start:cycle_pre+cycle_fault),1),IterData.omegacoi((n_start:cycle_pre+cycle_fault),1)-1,'color','r','LineWidth',2);  hold on;
+    plot(IterData.deltacd((cycle_pre+cycle_fault+1:n_end),1),IterData.omegacoi((cycle_pre+cycle_fault+1:n_end),1)-1,'color','b','LineWidth',2);  hold on;
+    xlabel('\delta_D');
+    ylabel('\omega_{COI}');
+    legend('fault-on','post-fault');
+    title('Damping process'); 
 
 
 
