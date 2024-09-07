@@ -1,5 +1,5 @@
-%% function: calculate reduced admittance matrix (to generator buses) from structure-preserved admittance matrix
-function [Y_red,Ynn,Ynr,Yrn,Yrr]=Fun_Yfull2Yred(Y_full,pfdata,faultflag)
+%% function: modify structure preserved admittance matrix
+function [Y_full_modified,Transform]=Fun_Yfull2Yfull(Y_full,pfdata,faultflag)
 %% block matrix
     if(faultflag==0)
         nbus=pfdata.bus.num;
@@ -45,7 +45,7 @@ function [Y_red,Ynn,Ynr,Yrn,Yrr]=Fun_Yfull2Yred(Y_full,pfdata,faultflag)
                 no_withoutgen(k,1)=i;
                 k=k+1;
             end
-            flag_gen=0;
+            flag_gen=0; 
         end
         for i=1:ngen      
             for j=1:(nbus-ngen)
@@ -76,6 +76,21 @@ function [Y_red,Ynn,Ynr,Yrn,Yrr]=Fun_Yfull2Yred(Y_full,pfdata,faultflag)
             Yrr(i,j)=Y_full(no_loadself,no_loadinte);
         end
         end    
-%% Reduced matrix calculation
-    Y_red=Ynn-Ynr*inv(Yrr)*Yrn;
+%% modified matrix
+    Y_full_modified=[Ynn,Ynr;Yrn,Yrr];
+    k=1;
+     for i=1:pfdata.bus.num
+            flag_gen=0;
+            for j=1:ngen
+                genno = pfdata.gen.no(j);
+                if(i==genno)
+                    flag_gen=1;
+                end
+            end
+            if(flag_gen==0 && i~=no_faultbus)
+                no_withoutgen(k,1)=i;
+                k=k+1;
+            end
+    end
+    Transform = [pfdata.gen.no;no_withoutgen];
 end
