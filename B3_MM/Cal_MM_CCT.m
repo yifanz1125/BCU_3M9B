@@ -2,7 +2,7 @@ close all
 clear
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Cal_MM_Static;
-clear pfdata EMF Yload Case netdata
+clear EMF Yload Case netdata
 clear DT HT ngen
 %% Calculate exit point along fault-on Trajectory
     Tfault=2;   Tunit=1e-4;

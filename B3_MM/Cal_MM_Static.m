@@ -1,7 +1,7 @@
 %% Input: preset (m,d,Pm,Epu,xe1,flagxd(0-default)) fault (faultline faultposition) Case (data for matpower)
 %% Output: pfdata--powerflow data; netdata--Yorg(admittance matrix without load); prefault/fault/postfault (Yred,SEP)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clear
+%clear
 close all
 %% Energy estimation
     preset.PathEnergyCal=0; % 0: Ray approximation  n: N-segment trap approximation (-1)--neglect this part
@@ -14,7 +14,7 @@ close all
 % 9 bus sys===========================================
     Basevalue.omegab=2*pi*60;
     preset.m=[0.1254;0.034;0.016];  %[10;10;10]/omegab;
-    preset.d=preset.m.*[1;0.1;0.1];
+    preset.d=preset.m.*[0.2;0.2;0.2];
 % % 39 bus sys=========================================
 %     Basevalue.omegab=2*pi*50;
 %     preset.m=[42.0;30.3;35.8;28.6;26;34.8;26.4;24.3;34.5;50]*2/(Basevalue.omegab);
@@ -71,7 +71,7 @@ close all
     clear path_matpower path_matdata
 %% Fault settings
 %     preset.flagfault=1; % 1--fault occur
-    preset.faultline=[5;7];  % [Frombus Tobus]
+    preset.faultline=[9;6];  % [Frombus Tobus]
     preset.faultposition=0;
     fault.faultline=preset.faultline;
 %     fault.flagfault=preset.flagfault; % 1--fault occur
@@ -118,13 +118,13 @@ close all
     
     clear Y Loadbus
     %% Reduced Network Admittance of Prefault
-        prefault.Yred=Fun_Yfull2Yred(prefault.Yfull,pfdata,0);
+        [prefault.Yred,prefault.Ynn,prefault.Ynr,prefault.Yrn,prefault.Yrr]=Fun_Yfull2Yred(prefault.Yfull,pfdata,0);
     %% Reduced Network Admittance of Fault
         Yfull_pre=prefault.Yfull;
         fault.Yfull=Yfull_pre;
         fault.Yfull(:,fault.faultbus)=[];
         fault.Yfull(fault.faultbus,:)=[];
-        fault.Yred=Fun_Yfull2Yred(fault.Yfull,pfdata,[1,fault.faultbus]);
+        [fault.Yred,fault.Ynn,fault.Ynr,fault.Yrn,fault.Yrr]=Fun_Yfull2Yred(fault.Yfull,pfdata,[1,fault.faultbus]);
     %% Reduced Network Admittance of Postfault
         pfdata.branch.RXB_postfault=pfdata.branch.RXB_xd;
         for i=1:size(pfdata.branch.RXB_postfault,1)
@@ -148,7 +148,7 @@ close all
         end
         postfault.Yfull=Y;
         clear Y Loadbus
-        postfault.Yred=Fun_Yfull2Yred(postfault.Yfull,pfdata,0);
+        [postfault.Yred,postfault.Ynn,postfault.Ynr,postfault.Yrn,postfault.Yrr]=Fun_Yfull2Yred(postfault.Yfull,pfdata,0);
 %% SEP calculation
     %% Adopt newton method
     if(preset.EquCal==1)
@@ -157,12 +157,12 @@ close all
         if(flag_iter~=1)
             error(' prefault SEP iteration cannot converage!\n');
         end
-        clear flag_iter n_iter delta0
+        %clear flag_iter n_iter delta0
         [postfault.SEP_delta,postfault.SEP_omegapu,flag_iter,n_iter]=Fun_SEPiteration(postfault.Yred,preset.Pmpu,preset.Epu,preset.m,preset.d,prefault.SEP_delta,prefault.SEP_omegapu-1,Basevalue.omegab,1e4,1e-8);
         if(flag_iter~=1)
             error(' postfault SEP iteration cannot converage!\n');
         end
-        clear flag_iter n_iter
+        %clear flag_iter n_iter
     %% Adopt fsolve
     elseif(preset.EquCal==2)
         deltaomega_init=zeros(ngen,1);

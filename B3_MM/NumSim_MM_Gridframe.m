@@ -6,9 +6,11 @@
 omegab=Basevalue.omegab;
 %% Tfault and Tclear set
     Iter.Tfault=20;
-    Iter.Trecover=20.5149;
+    Iter.Trecover=20.246;
     Iter.Ttotal=100;
     Iter.Tunit=1e-4;
+    T_before = 10;
+    T_after = 40;
 %% iteration procedure
 % prefault
     delta0=prefault.SEP_delta;%zeros(ngen,1)D1D
@@ -23,6 +25,30 @@ omegab=Basevalue.omegab;
     omega0=omega_fault(cycle_fault,:);
     [theta_post,omega_post,thetac_post,omegacoi_post,Pe_post,cycle_post]=Fun_TrajIter_SRF(Iter.Ttotal-Iter.Trecover,Iter.Tunit,postfault.Yred,preset,delta0,omega0,omegab);
     clear delta0 omega0
+%% Results derived by ODE function
+% prefault
+    system="prefault";
+    delta0=prefault.SEP_delta;
+    omega0=prefault.SEP_omegapu*omegab*ones(ngen,1);
+    [t_prefault, x_prefault_all] = ode78(@f_timedomain,[0,Iter.Tfault],[delta0; omega0],odeset('RelTol',1e-5));
+% faults
+    system="fault";
+    delta0=x_prefault_all(end,1:3)';
+    omega0=x_prefault_all(end,4:6)';
+    [t_fault, x_fault_all] = ode78(@f_timedomain,[Iter.Tfault,Iter.Trecover],[delta0; omega0],odeset('RelTol',1e-5));
+% postfault
+    system="postfault";
+    delta0=x_fault_all(end,1:3)';
+    omega0=x_fault_all(end,4:6)';
+    [t_postfault, x_postfault_all] = ode78(@f_timedomain,[Iter.Trecover,Iter.Ttotal],[delta0; omega0],odeset('RelTol',1e-5));
+    clear delta0 omega0
+% data collection
+t_timedomain = [t_prefault;t_fault;t_postfault];
+deltac_timedomain = [x_prefault_all(:,1:3); x_fault_all(:,1:3); x_postfault_all(:,1:3)];
+omega_timedomain = [x_prefault_all(:,4:6); x_fault_all(:,4:6); x_postfault_all(:,4:6)]./omegab;
+omegacoi_timedomain = omega_timedomain*preset.m./sum(preset.m);
+omegac_timedomain = omega_timedomain - omegacoi_timedomain*ones(1,3);
+
 
 %% Data Collection
     Tpre=Iter.Tfault;
@@ -75,25 +101,28 @@ omegab=Basevalue.omegab;
     IterData.Tout(cycle_pre+cycle_fault+1:n_tt)=TM_post;
     IterData.Pe(cycle_pre+cycle_fault+1:n_tt,:)=Pe_post;
     clear n_tt
-%     % relative theta
-%     IterData.theta12=IterData.theta(:,1)-IterData.theta(:,2);
-%     IterData.theta13=IterData.theta(:,1)-IterData.theta(:,3);
-%     IterData.theta23=IterData.theta(:,2)-IterData.theta(:,3);
 
     %% Trajectories in COI
     % thetac
+        clear ylim
         figure;
         set(gca,'position',[0.115,0.12,0.815,0.84]);
         set(gcf,'position',[60 200 600 450]);
 
-        n_start=cycle_pre-fix(10/Iter.Tunit)+1;
-        n_end=cycle_pre+fix(20/Iter.Tunit);
+        n_start=cycle_pre-fix(T_before/Iter.Tunit)+1;
+        n_end=cycle_pre+fix(T_after/Iter.Tunit);
         
         plot(IterData.Tout(n_start:n_end),IterData.thetac((n_start:n_end),1),'linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
         plot(IterData.Tout(n_start:n_end),IterData.thetac((n_start:n_end),2),'linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
         plot(IterData.Tout(n_start:n_end),IterData.thetac((n_start:n_end),3),'linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
         plot(IterData.Tout(n_start:n_end),IterData.deltacd((n_start:n_end),1),'linewidth',2,'color',[200/255 200/255 200/255]);    hold on;
-        
+
+        %ode time domain
+        plot(t_timedomain,deltac_timedomain(:,1),'LineStyle',':','linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
+        plot(t_timedomain,deltac_timedomain(:,2),'LineStyle',':','linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
+        plot(t_timedomain,deltac_timedomain(:,3),'LineStyle',':','linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
+
+        xlim([20-T_before 20+T_after]);
         grid on;    grid minor;
         ylim([-2,4]);
         % xlabel ylabel position
@@ -129,6 +158,13 @@ omegab=Basevalue.omegab;
         plot(IterData.Tout(n_start:n_end),IterData.omegacoi((n_start:n_end),1)-1,'linewidth',2,'color',[0/255 0/255 0/255]);    hold on;
         plot(IterData.Tout(n_start:n_end),IterData.omegacd((n_start:n_end),1),'linewidth',2,'color',[200/255 200/255 200/255]);    hold on;
 
+        %ode time domain
+        plot(t_timedomain,omegac_timedomain(:,1),'LineStyle',':','linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
+        plot(t_timedomain,omegac_timedomain(:,2),'LineStyle',':','linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
+        plot(t_timedomain,omegac_timedomain(:,3),'LineStyle',':','linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
+        plot(t_timedomain,omegacoi_timedomain-1,'LineStyle',':','linewidth',2,'color',[0/255 0/255 0/255]);    hold on;
+
+        xlim([20-T_before 20+T_after]);
         grid on;    grid minor;
         ylim([-0.03,0.05]);
 
@@ -152,7 +188,7 @@ omegab=Basevalue.omegab;
         ax.FontSize=14;
         xlabel('Time(s)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[xlab_x,xlab_y,-1]);
         ylabel('\omega(pu)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[ylab_x,ylab_y,-1]);
-%% Calculate Energy
+% Calculate Energy
     no_duration = n_end - n_start + 1;
     Pm=preset.Pmpu;
     E=preset.Epu;
@@ -342,6 +378,11 @@ omegab=Basevalue.omegab;
     ylabel('\omega_{COI}');
     legend('fault-on','post-fault');
     title('Damping process'); 
+  
+%% ode function
+function dfdt = f_timedomain(t,x)
+    dfdt = F_3M9B_MR_ODE(x);
+end
 
 
 
