@@ -4,7 +4,7 @@
 clear
 close all
 %% Energy estimation
-    preset.PathEnergyCal=1; % 0: Ray approximation  n: N-segment trap approximation (-1)--neglect this part
+    preset.PathEnergyCal=10; % 0: Ray approximation  n: N-segment trap approximation (-1)--neglect this part
 %% Equilibrium calculation method
     preset.EquCal=2;    % 1--Newton method 2--fsolve method
 %% fsolve preset

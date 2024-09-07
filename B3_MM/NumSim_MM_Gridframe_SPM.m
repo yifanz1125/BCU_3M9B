@@ -679,7 +679,7 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
                     Pe(i)=Pe(i)+E(i)*E(j)*B_post(i,j)*sin(ddelta)+E(i)*E(j)*G_post(i,j)*cos(ddelta);
                     if(i~=j)
                         Pe_lossy(i)=Pe_lossy(i)+E(i)*E(j)*G_post(i,j)*cos(ddelta);
-                        %Pe_mag(i)=Pe_mag(i)+E(i)*E(j)*B_post(i,j)*sin(ddelta);
+                        Pe_mag(i)=Pe_mag(i)+E(i)*E(j)*B_post(i,j)*sin(ddelta);
                     end
                 end
                 for l=1:(nbus-ngen)
@@ -712,7 +712,7 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
                         Pnet_lossy(i)=Pnet_lossy(i)+voltage_net_clear_DAE(n_start-1+tm,i)*voltage_net_clear_DAE(n_start-1+tm,l)*G_post(i+ngen,l+ngen)*cos(ddelta);
                         Pnet_mag(i)=Pnet_mag(i)+voltage_net_clear_DAE(n_start-1+tm,i)*voltage_net_clear_DAE(n_start-1+tm,l)*B_post(i+ngen,l+ngen)*sin(ddelta);
                     else
-                        P_loadloss(i) = voltage_net_clear_DAE(n_start-1+tm,i)^2*G_post(i+ngen,l+ngen);
+                        P_loadloss(i) = voltage_net_clear_DAE(n_start-1+tm,i)^2*G_post(i+ngen,i+ngen);
                     end
                 end
                 for h=1:size(preset.Sload,1)
@@ -770,7 +770,7 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
             
 
             Ep_lossy_iter(tm)=Ep_lossy_iter(tm-1)+ddelta_tmp*(Pe_lossy+Pe_lossy_pre)/2+dtheta_tmp*(Pnet_lossy+Pnet_lossy_pre)/2+dvoltage_tmp*(Qnet_lossy+Qnet_lossy_pre)/2;   %losses energy on network exclude self-susceptance
-            Ep_mag_iter(tm)=Ep_mag_iter(tm-1)+ddelta_tmp*Pe_mag+dtheta_tmp*(Pnet_mag+Pnet_mag_pre)/2+dvoltage_tmp*(Qnet_mag+Qnet_mag_pre)/2;% %magnatic potential energy
+            Ep_mag_iter(tm)=Ep_mag_iter(tm-1)+ddelta_tmp*(Pe_mag+Pe_mag_pre)/2+dtheta_tmp*(Pnet_mag+Pnet_mag_pre)/2+dvoltage_tmp*(Qnet_mag+Qnet_mag_pre)/2;% %magnatic potential energy
             Ep_loadloss_iter(tm)=Ep_loadloss_iter(tm-1)+dtheta_tmp*(P_loadloss+P_loadloss_pre)/2; %R-type load losses containing self-susceptance
             
             Ep_iter_record(tm)=Ep_iter_record(tm-1)-sum(Ep_iter_gen) + sum(Ep_iter_net); %sum Ep Iteration
@@ -822,15 +822,15 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
     fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
     legend('Calculation','Iter');
     title('lossy energy in grid');
-    figure;
-    set(gca,'position',[0.115,0.12,0.815,0.84]);
-    set(gcf,'position',[60 200 600 450]);
-    plot(t_timedomain_DAE(n_start:n_end),Ep_mag,'color','r','LineWidth',2);  hold on;
-    plot(t_timedomain_DAE(n_start:n_end),Ep_mag_iter,'color','b','LineWidth',2,'LineStyle','--');  hold on;
-    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
-    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
-    legend('Potential','Iter');
-    title('magnetic energy');
+%     figure;
+%     set(gca,'position',[0.115,0.12,0.815,0.84]);
+%     set(gcf,'position',[60 200 600 450]);
+%     plot(t_timedomain_DAE(n_start:n_end),Ep_mag,'color','r','LineWidth',2);  hold on;
+%     plot(t_timedomain_DAE(n_start:n_end),Ep_mag_iter,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+%     ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+%     fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+%     legend('Potential','Iter');
+%     title('magnetic energy');
     figure;
     set(gca,'position',[0.115,0.12,0.815,0.84]);
     set(gcf,'position',[60 200 600 450]);
@@ -844,44 +844,44 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
     legend('load Lossy part err','network Lossy part err','Total err','Total lossy err','network potential error');
     title('Potential Energy Error');  
 
+%     figure;
+%     set(gca,'position',[0.115,0.12,0.815,0.84]);
+%     set(gcf,'position',[60 200 600 450]);
+%     plot(t_timedomain_DAE(n_start:n_end),Ed_un_record,'color','r','LineWidth',2);  hold on;
+%     plot(t_timedomain_DAE(n_start:n_end),Ed_non_record,'color','b','LineWidth',2,'LineStyle','-');  hold on;
+%     plot(t_timedomain_DAE(n_start:n_end),Ed_non_record+Ed_un_record,'color','k','LineWidth',2,'LineStyle','--');  hold on;
+%     ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+%     fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+%     legend('uniformed damping','non-uniformed damping','total');
+%     title('Damping Energy');
     figure;
     set(gca,'position',[0.115,0.12,0.815,0.84]);
     set(gcf,'position',[60 200 600 450]);
-    plot(t_timedomain_DAE(n_start:n_end),Ed_un_record,'color','r','LineWidth',2);  hold on;
-    plot(t_timedomain_DAE(n_start:n_end),Ed_non_record,'color','b','LineWidth',2,'LineStyle','-');  hold on;
-    plot(t_timedomain_DAE(n_start:n_end),Ed_non_record+Ed_un_record,'color','k','LineWidth',2,'LineStyle','--');  hold on;
-    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
-    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
-    legend('uniformed damping','non-uniformed damping','total');
-    title('Damping Energy');
-    figure;
-    set(gca,'position',[0.115,0.12,0.815,0.84]);
-    set(gcf,'position',[60 200 600 450]);
-    plot(t_timedomain_DAE(n_start:n_end),Ep+Ek-(Ep_loadloss-Ep_loadloss_iter)*0.7,'color','r','LineWidth',2);  hold on;
+    plot(t_timedomain_DAE(n_start:n_end),Ep+Ek,'color','r','LineWidth',2);  hold on;
     plot(t_timedomain_DAE(n_start:n_end),Ep_iter_record+Ek,'color','b','LineWidth',2,'LineStyle','--');  hold on;
     ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
     fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
     legend('Expression','Iteration');
     title('Energy Function'); 
-    figure;
-    set(gca,'position',[0.115,0.12,0.815,0.84]);
-    set(gcf,'position',[60 200 600 450]);
-    plot(t_timedomain_DAE(n_start:n_end),P_un_record,'color','r','LineWidth',2);  hold on;
-    plot(t_timedomain_DAE(n_start:n_end),P_non_record,'color','g','LineWidth',2);  hold on;
-    plot(t_timedomain_DAE(n_start:n_end),P_non_record+P_un_record,'color','b','LineWidth',2,'LineStyle','--');  hold on;
-    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
-    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
-    legend('Uniform','Non-uniform','total');
-    title('Derivative of damping energy'); 
-    figure;
-    set(gca,'position',[0.115,0.12,0.815,0.84]);
-    set(gcf,'position',[60 200 600 450]);
-    plot(t_timedomain_DAE(n_start:n_end),Err_step_exp-(Ep_loadloss-Ep_loadloss_iter)*0.7,'color','r','LineWidth',2);  hold on;
-    plot(t_timedomain_DAE(n_start:n_end),Err_step,'color','b','LineWidth',2,'LineStyle','--');  hold on;
-    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
-    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
-    legend('Expression','Iteration');
-    title('Total Energy Change');  
+%     figure;
+%     set(gca,'position',[0.115,0.12,0.815,0.84]);
+%     set(gcf,'position',[60 200 600 450]);
+%     plot(t_timedomain_DAE(n_start:n_end),P_un_record,'color','r','LineWidth',2);  hold on;
+%     plot(t_timedomain_DAE(n_start:n_end),P_non_record,'color','g','LineWidth',2);  hold on;
+%     plot(t_timedomain_DAE(n_start:n_end),P_non_record+P_un_record,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+%     ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+%     fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+%     legend('Uniform','Non-uniform','total');
+%     title('Derivative of damping energy'); 
+%     figure;
+%     set(gca,'position',[0.115,0.12,0.815,0.84]);
+%     set(gcf,'position',[60 200 600 450]);
+%     plot(t_timedomain_DAE(n_start:n_end),Err_step_exp,'color','r','LineWidth',2);  hold on;
+%     plot(t_timedomain_DAE(n_start:n_end),Err_step,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+%     ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+%     fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+%     legend('Expression','Iteration');
+%     title('Total Energy Change');  
 
 
 %% ode function
