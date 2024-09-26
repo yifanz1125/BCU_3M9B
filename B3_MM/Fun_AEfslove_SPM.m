@@ -1,6 +1,6 @@
 % x(2*nbus-ngen) = delta_net(1:nbus-ngen) | V_net(nbus-ngen+1:2*nbus-2*ngen)
-function f= Fun_AEfslove_SPM(x,deltac,preset)
-system = evalin('base','system');
+function f= Fun_AEfslove_SPM(x,deltac,preset,system)
+%system = evalin('base','system');
     prefault = evalin('base','prefault');
     fault = evalin('base','fault');
     postfault = evalin('base','postfault');

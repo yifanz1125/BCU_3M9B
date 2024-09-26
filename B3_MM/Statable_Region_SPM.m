@@ -1,3 +1,5 @@
+clear x_set x_set2 x_set3
+
 N=2;
 x=(0:0.1:1)*2*pi;
 n = length(x);
@@ -9,16 +11,45 @@ for m = 0:(n^N - 1)
         x_set(l,m+1) = x(index);
     end
 end
+
+x = (0.5:0.5:1)*2*pi;
+n=length(x);
+for m = 0:(n^6 - 1)
+    for l = 1:6
+        index = floor(m/n^(l-1));
+        index = mod(index,n)+1;
+        x_set2(l,m+1) = x(index);
+    end
+end
+
+% y = (0.5:0.5:1);
+% n=length(x);
+% for m = 0:(n^6 - 1)
+%     for l = 1:6
+%         index = floor(m/n^(l-1));
+%         index = mod(index,n)+1;
+%         x_set3(l,m+1) = y(index);
+%     end
+% end
+x_set3(:,1) = 0.5*ones(6,1);
+x_set3(:,2) = 1*ones(6,1);
+
+
 torralence = 1e-2; 
 %% calculate EPs
 m = 1;
 ep_set = [];
-options = optimoptions('fsolve','FunctionTolerance',1e-10,'MaxIterations',10000,'OptimalityTolerance',1e-10);
+options = optimoptions('fsolve','FunctionTolerance',1e-10,'display','off','MaxIterations',10000,'OptimalityTolerance',1e-10);
 for n = 1:length(x_set(1,:))
-    xep = x_set(:,n);
-    [xep,ferr,~,~,A] = fsolve(@f,xep,options);
+    for p = 1:length(x_set2(1,:))
+    for q = 1:length(x_set3(1,:))
+    xep_extend = [x_set(:,n);x_set2(:,p);x_set3(:,q)];
+    [xep_extend,ferr,~,~,A] = fsolve(@f,xep_extend,options);
 
+    xep = xep_extend(1:2);
     xep = mod(xep,2*pi);
+    delta_net_ep = xep_extend(3:8);
+    voltage_net_ep = xep_extend(9:14);
     
     if maxabs(ferr) < torralence
         if isnewxep(ep_set,xep,torralence)
@@ -32,6 +63,8 @@ for n = 1:length(x_set(1,:))
             v = V(:,~sig);                      % the stable sub-space
             
             ep_set(m).xep = real(xep); %#ok<*SAGROW> 
+            ep_set(m).delta_net_ep = real(delta_net_ep); 
+            ep_set(m).voltage_net_ep = real(voltage_net_ep); 
             ep_set(m).A = A;
             ep_set(m).Lambda = Lambda;
             ep_set(m).V = V;   
@@ -44,6 +77,8 @@ for n = 1:length(x_set(1,:))
             xeps=xep;
             end
         end
+    end
+    end
     end
 end
 
@@ -70,6 +105,7 @@ for n = 1:length(ep_set)
         ep_set_ext(m+6).xep(2) = ep_set(n).xep(2) - 4*pi;
 
 end
+%%
 figure;
 hold on;
 grid on;
@@ -89,16 +125,7 @@ for m = 1 : length(ep_set_ext)
             plot(x_all(:,1),x_all(:,2),'k-','linewidth',1.5);
         end        
 end
-%% 
-xep = ep_set_ext(19).xep;
-v = ep_set_ext(19).v;
-perturb = 1e-2;
-[~ , x_p] = ode45(@f_backward,[0,50],xep+v*perturb,odeset('RelTol',1e-5));
-[~ , x_n] = ode45(@f_backward,[0,50],xep-v*perturb,odeset('RelTol',1e-5));
-x_all = [flip(x_n,1);x_p];
-plot(x_all(:,1),x_all(:,2),'b-','linewidth',1);
-axis([0,2.5,0,3.5]);
-%%
+
 
 for m = 1:length(ep_set)
     disp_v('Index',m);
@@ -132,7 +159,7 @@ function disp_v(msg,v)
     disp(v);
 end
 function dfdt = f(x)  
-        dfdt = f_reducedstate(x);
+        dfdt = f_reducedstate_SPM(x);
 end
 function dfdt = f_forward(t,x)
     dfdt = f(x);

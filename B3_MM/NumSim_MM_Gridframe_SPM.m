@@ -6,7 +6,7 @@
 omegab=Basevalue.omegab;
 %% Tfault and Tclear set
     Iter.Tfault=20;
-    Iter.Trecover=20.2;%20.246;
+    Iter.Trecover=20.27;%20.246;
     Iter.Ttotal=100;
     Iter.Tunit=1e-4;
     T_before = 10;
@@ -37,7 +37,7 @@ omegab=Basevalue.omegab;
     system="fault";
     delta0=x_prefault_all(end,1:3)';
     omega0=x_prefault_all(end,4:6)';
-    [t_fault, x_fault_all] = ode78(@f_timedomain,[Iter.Tfault,Iter.Trecover],[delta0; omega0],odeset('RelTol',1e-5));
+    [t_fault, x_fault_all] = ode78(@f_timedomain,Iter.Tfault:Iter.Tunit:Iter.Trecover,[delta0; omega0],odeset('RelTol',1e-5));
     deltac_timedomain_fault=x_fault_all(:,1:3);
 
     % postfault
@@ -85,7 +85,7 @@ omegab=Basevalue.omegab;
     Vmnet = [Vmnet_pre;Vmnet_fault;Vmnet_post];
     Vpnet = [Vpnet_pre;Vpnet_fault;Vpnet_post];
 %% Results derived by DAE function in Structure Preserved Model
-M = diag([ones(3,1); ones(12,1)*1e-10; ones(3,1)]);
+M = diag([ones(3,1); ones(12,1)*1e-15; ones(3,1)]);
 options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,12),1e-8*ones(1,3)]);
 % prefault
     system="prefault";
@@ -94,7 +94,7 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
     delta_net0=prefault.net_delta;
     voltage_net0=prefault.net_voltage;
     x0=[delta0; delta_net0; voltage_net0; omega0];
-    [t_prefault, x_prefault_all] = ode15s(@f_timedomain_DAE,0:Iter.Tunit:Iter.Tfault,x0,options);
+    [t_prefault, x_prefault_all] = ode15s(@(t,x)f_timedomain_DAE(t, x, system),0:Iter.Tunit:Iter.Tfault,x0,options);
 %fault
     system="fault1";
     delta0=x_prefault_all(end,1:3)';
@@ -105,8 +105,8 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
     voltage_net0(fault.faultbus-ngen)=[];
     delta_net0(6)=0;
     voltage_net0(6)=0;
-    [delta_net_s,V_net_s,flag_iter,n_iter,err] = Fun_AEiteration_SPM(delta_net0,voltage_net0,delta0,preset,Basevalue,1e5,1e-10);
-    [t_fault, x_fault_all] = ode15s(@f_timedomain_DAE,Iter.Tfault:Iter.Tunit:Iter.Trecover,[delta0; delta_net_s; V_net_s; omega0],options);
+    [delta_net_s,V_net_s,flag_iter,n_iter,err] = Fun_AEiteration_SPM(delta_net0,voltage_net0,delta0,preset,Basevalue,system,1e5,1e-10);
+    [t_fault, x_fault_all] = ode15s(@(t, x) f_timedomain_DAE(t, x, system),Iter.Tfault:Iter.Tunit:Iter.Trecover,[delta0; delta_net_s; V_net_s; omega0],options);
     fault_delta_net=x_fault_all(2:end,4:8);
     fault_delta_net=[fault_delta_net(:,1:(fault.faultbus-ngen-1)) zeros(size(fault_delta_net,1),1) fault_delta_net(:,(fault.faultbus-ngen):end)];
     fault_voltage_net=x_fault_all(2:end,10:14);
@@ -118,25 +118,28 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
     voltage_net_faultclear = zeros(size(fault_delta_gen,1),nbus-ngen);
     delta_net_faultclear2 = zeros(size(fault_delta_gen,1),nbus-ngen);
     voltage_net_faultclear2 = zeros(size(fault_delta_gen,1),nbus-ngen);
+    temp_ini = [zeros(6,1);ones(6,1)];
     for i = 1:(size(fault_delta_gen,1))
-       [delta_net_temp,voltage_temp,flag_iter,n_iter,err] = Fun_AEiteration_SPM(zeros(6,1),ones(6,1),fault_delta_gen(i,:)',preset,Basevalue,1e4,1e-10);
-       delta_net_faultclear(i,:) = delta_net_temp';
-       voltage_net_faultclear(i,:) = voltage_temp';
-       Results_fsolve=fsolve(@(x)Fun_AEfslove_SPM(x,fault_delta_gen(i,:)',preset),[zeros(6,1);ones(6,1)],optimset('TolFun',1e-20,'MaxFunEvals',1e5,'Maxiter',1e5,'Display','off','TolX',1e-9));
-       delta_net_faultclear2(i,:) = Results_fsolve(1:6)';
-       voltage_net_faultclear2(i,:) = Results_fsolve(7:12)';
+       %[delta_net_temp,voltage_temp,flag_iter,n_iter,err] = Fun_AEiteration_SPM(zeros(6,1),ones(6,1),fault_delta_gen(i,:)',preset,Basevalue,system,1e4,1e-10);
+       %delta_net_faultclear(i,:) = delta_net_temp';
+       %voltage_net_faultclear(i,:) = voltage_temp';
+       [Results_fsolve,fval,exitflag,output]=fsolve(@(x)Fun_AEfslove_SPM(x,fault_delta_gen(i,:)',preset,system),temp_ini,optimset('TolFun',1e-20,'MaxFunEvals',1e5,'Maxiter',1e5,'Display','off','TolX',1e-5));
+       if exitflag<=0
+           error('cannot find fault-clear state! \n');
+       end
+       delta_net_faultclear(i,:) = Results_fsolve(1:6)';
+       voltage_net_faultclear(i,:) = Results_fsolve(7:12)';
+       temp_ini = Results_fsolve;
     end
 
 %% postfault
     system="postfault";
     delta0=x_fault_all(end,1:3)';
     omega0=x_fault_all(end,16:18)';
-    delta_net0=x_fault_all(end,4:8)';
-    delta_net0=[delta_net0(1:(fault.faultbus-ngen-1)); 0; delta_net0((fault.faultbus-ngen):end)];
-    voltage_net0=x_fault_all(end,10:14)';
-    voltage_net0=[voltage_net0(1:(fault.faultbus-ngen-1)); 1; voltage_net0((fault.faultbus-ngen):end)];
-    [delta_net_s,Voltage_net_s,flag_iter,n_iter,err] = Fun_AEiteration_SPM(zeros(6,1),ones(6,1),delta0,preset,Basevalue,1e4,1e-10);
-    [t_postfault, x_postfault_all] = ode15s(@f_timedomain_DAE,Iter.Trecover:Iter.Tunit:Iter.Ttotal,[delta0; delta_net_s; Voltage_net_s; omega0],options);
+    [delta_net_s,Voltage_net_s,flag_iter,n_iter,err] = Fun_AEiteration_SPM(temp_ini(1:6),temp_ini(7:12),delta0,preset,Basevalue,system,1e4,1e-10);
+    [Results_fsolve,fval,exitflag,output]=fsolve(@(x)Fun_AEfslove_SPM(x,delta0,preset,system),temp_ini,optimset('TolFun',1e-20,'MaxFunEvals',1e5,'Maxiter',1e5,'Display','off','TolX',1e-5));
+    
+    [t_postfault, x_postfault_all] = ode15s(@(t,x)f_timedomain_DAE(t,x,system),Iter.Trecover:Iter.Tunit:Iter.Ttotal,[delta0; delta_net_s; Voltage_net_s; omega0],options);
     %clear delta0 omega0
 
 % data collection
@@ -589,21 +592,24 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
      G_post=real(Yfull_post);
      B_post=imag(Yfull_post);
     % Potential energy
-        [Ep_tmp(1),Ep_tmp(2),Ep_tmp(3),Ep_tmp(4)]=Fun_Cal_PotentialEnergy_SPM(preset,postfault,deltac_timedomain_DAE(n_start,:)',delta_net_clear_DAE(n_start,:)',voltage_net_clear_DAE(n_start,:)');
+        [Ep_tmp(1),Ep_tmp(2),Ep_tmp(3),Ep_tmp(4),Ep_tmp(5)]=Fun_Cal_PotentialEnergy_SPM(preset,postfault,deltac_timedomain_DAE(n_start,:)',delta_net_clear_DAE(n_start,:)',voltage_net_clear_DAE(n_start,:)');
         Ep_start=sum(Ep_tmp);
         Ep_loadloss_start=Ep_tmp(3);
         Ep_mag_start=Ep_tmp(2);
+        Ep_mag_load_start = Ep_tmp(5);
         Ep_lossy_start = Ep_tmp(4);
         clear Ep_tmp
         Ep=zeros(no_duration,1);
         Ep_loadloss=zeros(no_duration,1);
         Ep_lossy=zeros(no_duration,1);
         Ep_mag=zeros(no_duration,1);
+        Ep_mag_load=zeros(no_duration,1);
         for tm=1:size(Ep,1)
-            [Ep_tmp(1),Ep_tmp(2),Ep_tmp(3),Ep_tmp(4)]=Fun_Cal_PotentialEnergy_SPM(preset,postfault,deltac_timedomain_DAE(n_start-1+tm,:)',delta_net_clear_DAE(n_start-1+tm,:)',voltage_net_clear_DAE(n_start-1+tm,:)');
+            [Ep_tmp(1),Ep_tmp(2),Ep_tmp(3),Ep_tmp(4),Ep_tmp(5)]=Fun_Cal_PotentialEnergy_SPM(preset,postfault,deltac_timedomain_DAE(n_start-1+tm,:)',delta_net_clear_DAE(n_start-1+tm,:)',voltage_net_clear_DAE(n_start-1+tm,:)');
             Ep_loadloss(tm)=Ep_tmp(3);
             Ep_mag(tm)=Ep_tmp(2);
             Ep_lossy(tm)=Ep_tmp(4);
+            Ep_mag_load(tm)=Ep_tmp(5);
             Ep(tm)=sum(Ep_tmp);   clear Ep_tmp
         end
 
@@ -620,6 +626,7 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
         Ed_un_record=zeros(no_duration,1);
         Ep_lossy_iter=zeros(no_duration,1);
         Ep_loadloss_iter=zeros(no_duration,1);
+        Ep_magload_iter=zeros(no_duration,1);
         Ep_mag_iter=zeros(no_duration,1);
         Ep_iter_record=zeros(no_duration,1);
         Ep_iter_record_withoutnet=zeros(no_duration,1);
@@ -629,6 +636,7 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
         Ep_iter_record_withoutnet(1)=Ep_start;
         Ep_lossy_iter(1)=Ep_lossy_start;
         Ep_loadloss_iter(1) = Ep_loadloss_start;
+        Ep_magload_iter(1) = Ep_mag_load_start;
         Ep_mag_iter(1)=Ep_mag_start;
         Ek=zeros(no_duration,1);
         Ek(1)=Ek_start;
@@ -645,6 +653,8 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
         Pe_mag_pre=zeros(ngen,1);   % Pe relevant to line inductance
         Qnet_mag_pre=zeros(nbus-ngen,1);   % Pe relevant to line inductance
         Pnet_mag_pre=zeros(nbus-ngen,1);   % Pe relevant to line inductance
+        mag_load_P_pre=zeros(nbus-ngen,1);   % P Q load function on net
+        mag_load_Q_pre=zeros(nbus-ngen,1);   % P Q load function on net
         for tm=2:no_duration
             ddelta_tmp=deltac_timedomain_DAE(n_start-1+tm,:)-deltac_timedomain_DAE(n_start-1+tm-1,:);
             dtheta_tmp=delta_net_clear_DAE(n_start-1+tm,:)-delta_net_clear_DAE(n_start-1+tm-1,:);
@@ -659,6 +669,9 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
             Pe_mag=zeros(ngen,1);   % Pe relevant to line inductance
             Qnet_mag=zeros(nbus-ngen,1);   % Pe relevant to line inductance
             Pnet_mag=zeros(nbus-ngen,1);   % Pe relevant to line inductance
+
+            mag_load_P=zeros(nbus-ngen,1);   % P Q load function on net
+            mag_load_Q=zeros(nbus-ngen,1);   % P Q load function on net
 
             Ed_un=zeros(ngen,1);
             Ed_un_this=zeros(ngen,1);
@@ -718,7 +731,7 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
                 for h=1:size(preset.Sload,1)
                     if (preset.Sload(h,1)==postfault.Transform(i+ngen))
                          Pnet(i)=Pnet(i)+preset.Sload(h,2);
-                         Pnet_mag(i)=Pnet_mag(i)+preset.Sload(h,2);
+                         mag_load_P(i)=mag_load_P(i)+preset.Sload(h,2);
                     end
                 end
             end
@@ -739,8 +752,8 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
                 end
                 for h=1:size(preset.Sload,1)
                     if (preset.Sload(h,1)==postfault.Transform(i+ngen))
-                           Qnet(i)=Qnet(i)+preset.Sload(h,3)/voltage_net_clear_DAE(n_start-1+tm,l);
-                           Qnet_mag(i)=Qnet_mag(i)+preset.Sload(h,3)/voltage_net_clear_DAE(n_start-1+tm,l);
+                           Qnet(i)=Qnet(i)+preset.Sload(h,3)/voltage_net_clear_DAE(n_start-1+tm,i);
+                           mag_load_Q(i)=mag_load_Q(i)+preset.Sload(h,3)/voltage_net_clear_DAE(n_start-1+tm,i);
                     end
                 end
             end  
@@ -757,6 +770,8 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
                 Pe_mag_pre=Pe_mag;   % Pe relevant to line inductance
                 Qnet_mag_pre=Qnet_mag;   % Pe relevant to line inductance
                 Pnet_mag_pre=Pnet_mag;   % Pe relevant to line inductance
+                mag_load_P_pre=mag_load_P;
+                mag_load_Q_pre=mag_load_Q;
             end
 
 
@@ -775,6 +790,8 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
             
             Ep_iter_record(tm)=Ep_iter_record(tm-1)-sum(Ep_iter_gen) + sum(Ep_iter_net); %sum Ep Iteration
             Ep_iter_record_withoutnet(tm)= Ep_iter_record(tm-1)-sum(Ep_iter_gen); %sum Ep Iteration
+
+            Ep_magload_iter(tm) = Ep_magload_iter(tm-1)+dtheta_tmp*(mag_load_P+mag_load_P_pre)/2+dvoltage_tmp*(mag_load_Q_pre+mag_load_Q)/2;
 
 
 
@@ -798,8 +815,8 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
             Pe_mag_pre=Pe_mag;   % Pe relevant to line inductance
             Qnet_mag_pre=Qnet_mag;   % Pe relevant to line inductance
             Pnet_mag_pre=Pnet_mag;   % Pe relevant to line inductance
-            
-
+            mag_load_P_pre=mag_load_P;
+            mag_load_Q_pre=mag_load_Q;
         end                                                  
 
     %% plot
@@ -822,19 +839,28 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
     fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
     legend('Calculation','Iter');
     title('lossy energy in grid');
-%     figure;
-%     set(gca,'position',[0.115,0.12,0.815,0.84]);
-%     set(gcf,'position',[60 200 600 450]);
-%     plot(t_timedomain_DAE(n_start:n_end),Ep_mag,'color','r','LineWidth',2);  hold on;
-%     plot(t_timedomain_DAE(n_start:n_end),Ep_mag_iter,'color','b','LineWidth',2,'LineStyle','--');  hold on;
-%     ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
-%     fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
-%     legend('Potential','Iter');
-%     title('magnetic energy');
     figure;
     set(gca,'position',[0.115,0.12,0.815,0.84]);
     set(gcf,'position',[60 200 600 450]);
-    plot(t_timedomain_DAE(n_start:n_end), Ep_loadloss-Ep_loadloss_iter,'color','g','LineWidth',2);  hold on;
+    plot(t_timedomain_DAE(n_start:n_end),Ep_mag,'color','r','LineWidth',2);  hold on;
+    plot(t_timedomain_DAE(n_start:n_end),Ep_mag_iter,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+    legend('Potential','Iter');
+    title('magnetic energy');
+    figure;
+    set(gca,'position',[0.115,0.12,0.815,0.84]);
+    set(gcf,'position',[60 200 600 450]);
+    plot(t_timedomain_DAE(n_start:n_end),Ep_mag_load,'color','r','LineWidth',2);  hold on;
+    plot(t_timedomain_DAE(n_start:n_end),Ep_magload_iter,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+    legend('Potential','Iter');
+    title('magnetic load energy');
+    figure;
+    set(gca,'position',[0.115,0.12,0.815,0.84]);
+    set(gcf,'position',[60 200 600 450]);
+    plot(t_timedomain_DAE(n_start:n_end), Ep_loadloss-Ep_loadloss_iter,'color','g','LineWidth',2);  hold on; 
     plot(t_timedomain_DAE(n_start:n_end), Ep_lossy-Ep_lossy_iter,'color','y','LineWidth',2,'LineStyle','-');  hold on;
     plot(t_timedomain_DAE(n_start:n_end), Ep-Ep_iter_record,'color','b','LineWidth',2,'LineStyle','-');  hold on;
     plot(t_timedomain_DAE(n_start:n_end), Ep_loadloss-Ep_loadloss_iter+Ep_lossy-Ep_lossy_iter,'color','r','LineWidth',2,'LineStyle','--');  hold on;
@@ -844,16 +870,16 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
     legend('load Lossy part err','network Lossy part err','Total err','Total lossy err','network potential error');
     title('Potential Energy Error');  
 
-%     figure;
-%     set(gca,'position',[0.115,0.12,0.815,0.84]);
-%     set(gcf,'position',[60 200 600 450]);
-%     plot(t_timedomain_DAE(n_start:n_end),Ed_un_record,'color','r','LineWidth',2);  hold on;
-%     plot(t_timedomain_DAE(n_start:n_end),Ed_non_record,'color','b','LineWidth',2,'LineStyle','-');  hold on;
-%     plot(t_timedomain_DAE(n_start:n_end),Ed_non_record+Ed_un_record,'color','k','LineWidth',2,'LineStyle','--');  hold on;
-%     ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
-%     fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
-%     legend('uniformed damping','non-uniformed damping','total');
-%     title('Damping Energy');
+    figure;
+    set(gca,'position',[0.115,0.12,0.815,0.84]);
+    set(gcf,'position',[60 200 600 450]);
+    plot(t_timedomain_DAE(n_start:n_end),Ed_un_record,'color','r','LineWidth',2);  hold on;
+    plot(t_timedomain_DAE(n_start:n_end),Ed_non_record,'color','b','LineWidth',2,'LineStyle','-');  hold on;
+    plot(t_timedomain_DAE(n_start:n_end),Ed_non_record+Ed_un_record,'color','k','LineWidth',2,'LineStyle','--');  hold on;
+    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+    legend('uniformed damping','non-uniformed damping','total');
+    title('Damping Energy');
     figure;
     set(gca,'position',[0.115,0.12,0.815,0.84]);
     set(gcf,'position',[60 200 600 450]);
@@ -863,25 +889,25 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
     fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
     legend('Expression','Iteration');
     title('Energy Function'); 
-%     figure;
-%     set(gca,'position',[0.115,0.12,0.815,0.84]);
-%     set(gcf,'position',[60 200 600 450]);
-%     plot(t_timedomain_DAE(n_start:n_end),P_un_record,'color','r','LineWidth',2);  hold on;
-%     plot(t_timedomain_DAE(n_start:n_end),P_non_record,'color','g','LineWidth',2);  hold on;
-%     plot(t_timedomain_DAE(n_start:n_end),P_non_record+P_un_record,'color','b','LineWidth',2,'LineStyle','--');  hold on;
-%     ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
-%     fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
-%     legend('Uniform','Non-uniform','total');
-%     title('Derivative of damping energy'); 
-%     figure;
-%     set(gca,'position',[0.115,0.12,0.815,0.84]);
-%     set(gcf,'position',[60 200 600 450]);
-%     plot(t_timedomain_DAE(n_start:n_end),Err_step_exp,'color','r','LineWidth',2);  hold on;
-%     plot(t_timedomain_DAE(n_start:n_end),Err_step,'color','b','LineWidth',2,'LineStyle','--');  hold on;
-%     ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
-%     fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
-%     legend('Expression','Iteration');
-%     title('Total Energy Change');  
+    figure;
+    set(gca,'position',[0.115,0.12,0.815,0.84]);
+    set(gcf,'position',[60 200 600 450]);
+    plot(t_timedomain_DAE(n_start:n_end),P_un_record,'color','r','LineWidth',2);  hold on;
+    plot(t_timedomain_DAE(n_start:n_end),P_non_record,'color','g','LineWidth',2);  hold on;
+    plot(t_timedomain_DAE(n_start:n_end),P_non_record+P_un_record,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+    legend('Uniform','Non-uniform','total');
+    title('Derivative of damping energy'); 
+    figure;
+    set(gca,'position',[0.115,0.12,0.815,0.84]);
+    set(gcf,'position',[60 200 600 450]);
+    plot(t_timedomain_DAE(n_start:n_end),Err_step_exp,'color','r','LineWidth',2);  hold on;
+    plot(t_timedomain_DAE(n_start:n_end),Err_step,'color','b','LineWidth',2,'LineStyle','--');  hold on;
+    ax = gca; yl=ax.YLim; ymin=yl(1,1); ymax=yl(1,2); thetarange=[ymin,ymin,ymax,ymax];
+    fill(trange,thetarange,[.9805 .7031 .6797], 'linestyle', 'none', 'FaceAlpha',0.5);
+    legend('Expression','Iteration');
+    title('Total Energy Change');  
 
 
 %% ode function
@@ -889,12 +915,12 @@ function dfdt = f_timedomain(t,x)
     dfdt = F_3M9B_MR_ODE(x);
 end
 
-function dfdt = f_timedomain_DAE(t,x)
-    dfdt = F_3M9B_SP_DAE(x);
+function dfdt = f_timedomain_DAE(t,x,system)
+    dfdt = F_3M9B_SP_DAE(x,system);
 end
-function dfdt = f_timedomain_DAE_withflove(t,x)
-    Results_fsolve=fsolve(@(x)Fun_AEfslove_SPM(x,delta0,preset),[delta_net00;voltage_net00],optimset('TolFun',1e-20,'MaxFunEvals',1e5,'Maxiter',1e5,'Display','iter','TolX',1e-9));
-    dfdt = F_3M9B_SP_DAE(x);
+function dfdt = f_timedomain_DAE_withflove(t,x,net_guess,system)
+    net_value=fsolve(@(x)Fun_AEfslove_SPM(x,delta0,preset,system),net_guess,optimset('TolFun',1e-20,'MaxFunEvals',1e5,'Maxiter',1e5,'Display','iter','TolX',1e-9));
+    dfdt = F_3M9B_SP_ODE(x,net_value,system);
 end
 
 

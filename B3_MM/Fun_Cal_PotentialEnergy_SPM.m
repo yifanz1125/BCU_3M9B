@@ -1,7 +1,7 @@
 %% function: calculate potential energy (defined in original system) 
 %% Input: thetac_end(n*1)--current point thetac_start--used for path estimation
 %% Output: Ep1--generation potential EP2--network potential Ep3-load losses
-function [Ep1,Ep2,Ep3,Ep4]=Fun_Cal_PotentialEnergy_SPM(preset,postfault,thetac_end,theta_net_end,voltage_net_end)
+function [Ep1,Ep2,Ep3,Ep4,Ep5]=Fun_Cal_PotentialEnergy_SPM(preset,postfault,thetac_end,theta_net_end,voltage_net_end)
     thetac_SEP=postfault.SEP_delta;
     theta_net_SEP=postfault.net_delta;
     voltage_net_SEP=postfault.net_voltage;
@@ -18,6 +18,8 @@ function [Ep1,Ep2,Ep3,Ep4]=Fun_Cal_PotentialEnergy_SPM(preset,postfault,thetac_e
     Ep2=0;
     Ep3=0;
     Ep4=0;
+    Ep5=0;
+
 
     for i=1:ngen
         Ep1=Ep1+(-1)*(Pm(i)-E(i)^2*G_post(i,i))*(thetac_end(i,1)-thetac_SEP(i,1));
@@ -29,7 +31,7 @@ function [Ep1,Ep2,Ep3,Ep4]=Fun_Cal_PotentialEnergy_SPM(preset,postfault,thetac_e
         Ep2=Ep2+(-1)*(voltage_net_end(i,1)^2/2*B_post(i+ngen,i+ngen)-voltage_net_SEP(i,1)^2/2*B_post(i+ngen,i+ngen));
         for h=1:size(preset.Sload,1)
             if (preset.Sload(h,1)==postfault.Transform(i+ngen))
-                 Ep2=Ep2+preset.Sload(h,2)*(theta_net_end(i,1)-theta_net_SEP(i,1))+preset.Sload(h,3)*(log(voltage_net_end(i,1))- log(voltage_net_SEP(i,1)));
+                 Ep5=Ep5+preset.Sload(h,2)*(theta_net_end(i,1)-theta_net_SEP(i,1))+preset.Sload(h,3)*(log(voltage_net_end(i,1))- log(voltage_net_SEP(i,1)));
             end
         end
     end
