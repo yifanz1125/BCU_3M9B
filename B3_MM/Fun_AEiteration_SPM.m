@@ -1,7 +1,7 @@
 % x(2*nbus-ngen) = delta_net(1:nbus-ngen) | V_net(nbus-ngen+1:2*nbus-2*ngen)
-function [delta_net_s,V_net_s,flag_iter,n_iter,err] = Fun_AEiteration_SPM(delta_net0,V_net0,deltac,preset,basevalue,n_itermax,Tolerr)
+function [delta_net_s,V_net_s,flag_iter,n_iter,err] = Fun_AEiteration_SPM(delta_net0,V_net0,deltac,preset,basevalue,system,n_itermax,Tolerr)
 %% parameter preprocess
-    system = evalin('base','system');
+    %system = evalin('base','system');
     prefault = evalin('base','prefault');
     fault = evalin('base','fault');
     postfault = evalin('base','postfault');

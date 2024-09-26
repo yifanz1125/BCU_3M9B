@@ -1,6 +1,6 @@
 % x(2*nbus-ngen) = deltac(1: 3) | deltac_net(4:nbus) |
 % V_net(10:9+nbus-ngen)|omega(16:18)
-function dfdt = F_3M9B_SP_DAE(x,system)
+function dfdt = F_3M9B_SP_ODE(x,system)
 %% parameters preprocess  
 preset = evalin('base','preset');
 prefault = evalin('base','prefault');

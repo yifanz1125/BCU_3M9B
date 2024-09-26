@@ -159,6 +159,8 @@ close all
         [postfault.Yfull_mod,postfault.Transform] = Fun_Yfull2Yfull(postfault.Yfull,pfdata,0);
         [postfault.Yred,postfault.Ynn,postfault.Ynr,postfault.Yrn,postfault.Yrr]=Fun_Yfull2Yred(postfault.Yfull_forR,pfdata,0);
         nbus=size(postfault.Yfull,1);
+        preset.nbus = nbus;
+        preset.ngen = ngen;
 %% SEP calculation
     %% Adopt newton method
     if(preset.EquCal==1)
