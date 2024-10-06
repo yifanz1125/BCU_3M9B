@@ -1,5 +1,5 @@
 % x(2*nbus-ngen-1) = deltac(1: 2) | deltac_net(4:nbus) | V_net(10:9+nbus-ngen)
-function dfdt = f_reducedstate_SPM(x)
+function dfdt = f_reducedstate_SPM_backward(x)
 
 postfault = evalin('base','postfault');
 preset = evalin('base','preset');
@@ -76,10 +76,8 @@ end
 
 Pcoi=sum(Pm)-sum(Pe);
 
-% dfdt(1) =  (Pm(2)-Pe(2)-Pcoi/sum(m)*m(2))/m(2); 
-% dfdt(2) =  (Pm(3)-Pe(3)-Pcoi/sum(m)*m(3))/m(3);
-dfdt(1) =  (Pm(2)-Pe(2)-Pcoi/sum(m)*m(2))/d(2); 
-dfdt(2) =  (Pm(3)-Pe(3)-Pcoi/sum(m)*m(3))/d(3);
+dfdt(1) =  -1*(Pm(2)-Pe(2)-Pcoi/sum(m)*m(2))/m(2); 
+dfdt(2) =  -1*(Pm(3)-Pe(3)-Pcoi/sum(m)*m(3))/m(3);
 
 % power of load bus
 dfdt(3) = -Pnet(1);
@@ -89,7 +87,7 @@ dfdt(6) = -Pnet(4);
 dfdt(7) = -Pnet(5);
 dfdt(8) = -Pnet(6);
 % reactive power of load bus
-dfdt(9) = -Qnet(1);
+dfdt(9) =  -Qnet(1);
 dfdt(10) = -Qnet(2);
 dfdt(11) = -Qnet(3);
 dfdt(12) = -Qnet(4);

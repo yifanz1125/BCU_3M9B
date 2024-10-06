@@ -14,6 +14,8 @@ function f= Fun_SEPfslove_SPM(x,preset,state,basevalue)
     
 
     delta=zeros(ngen,1); % delta(ngen) is set as 0 as reference
+    delta_net = zeros(nbus-ngen,1);
+    V_net = zeros(nbus-ngen,1);
     Pe=zeros(ngen,1);
     Pnet = zeros(nbus-ngen,1);
     Qnet = zeros(nbus-ngen,1);

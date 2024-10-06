@@ -1,5 +1,5 @@
 % x(2*nbus-ngen-1) = deltac(1: 2) | deltac_net(4:nbus) | V_net(10:9+nbus-ngen)
-function dfdt = f_reducedstate_SPM(x)
+function dfdt = f_reducedstate2_SPM(x)
 
 postfault = evalin('base','postfault');
 preset = evalin('base','preset');
@@ -41,19 +41,19 @@ for i=1:ngen
         Pe(i)=Pe(i)+E(i)*V_net(l)*B(i,l+ngen)*sin(ddelta)+E(i)*V_net(l)*G(i,l+ngen)*cos(ddelta);
     end
 end
-% P calculation of Bus
+% P/V calculation of Bus
 for i=1:(nbus-ngen)
     for j=1:ngen
         ddelta=deltac_net(i)-deltacc(j);
-        Pnet(i)=Pnet(i)+V_net(i)*E(j)*B(i+ngen,j)*sin(ddelta)+V_net(i)*E(j)*G(i+ngen,j)*cos(ddelta);
+        Pnet(i)=Pnet(i)+E(j)*B(i+ngen,j)*sin(ddelta)+E(j)*G(i+ngen,j)*cos(ddelta);
     end
     for l=1:(nbus-ngen)
         ddelta=deltac_net(i)-deltac_net(l);
-        Pnet(i)=Pnet(i)+V_net(i)*V_net(l)*B(i+ngen,l+ngen)*sin(ddelta)+V_net(i)*V_net(l)*G(i+ngen,l+ngen)*cos(ddelta);
+        Pnet(i)=Pnet(i)+V_net(l)*B(i+ngen,l+ngen)*sin(ddelta)+V_net(l)*G(i+ngen,l+ngen)*cos(ddelta);
     end
     for h=1:size(preset.Sload,1)
         if (preset.Sload(h,1)==Transform(i+ngen))
-                   Pnet(i)=Pnet(i)+preset.Sload(h,2);
+               Pnet(i)=Pnet(i)+preset.Sload(h,2)/V_net(i);
         end
     end
 end
@@ -61,25 +61,23 @@ end
 for i=1:(nbus-ngen)
     for j=1:ngen
         ddelta=deltac_net(i)-deltacc(j);
-        Qnet(i)=Qnet(i)-V_net(i)*E(j)*B(i+ngen,j)*cos(ddelta)+V_net(i)*E(j)*G(i+ngen,j)*sin(ddelta);
+        Qnet(i)=Qnet(i)-E(j)*B(i+ngen,j)*cos(ddelta)+E(j)*G(i+ngen,j)*sin(ddelta);
     end
     for l=1:(nbus-ngen)
         ddelta=deltac_net(i)-deltac_net(l);
-        Qnet(i)=Qnet(i)-V_net(i)*V_net(l)*B(i+ngen,l+ngen)*cos(ddelta)+V_net(i)*V_net(l)*G(i+ngen,l+ngen)*sin(ddelta);
+        Qnet(i)=Qnet(i)-V_net(l)*B(i+ngen,l+ngen)*cos(ddelta)+V_net(l)*G(i+ngen,l+ngen)*sin(ddelta);
     end
     for h=1:size(preset.Sload,1)
         if (preset.Sload(h,1)==Transform(i+ngen))
-               Qnet(i)=Qnet(i)+preset.Sload(h,3);          
+               Qnet(i)=Qnet(i)+preset.Sload(h,3)/V_net(i);          
         end
     end
 end
 
 Pcoi=sum(Pm)-sum(Pe);
 
-% dfdt(1) =  (Pm(2)-Pe(2)-Pcoi/sum(m)*m(2))/m(2); 
-% dfdt(2) =  (Pm(3)-Pe(3)-Pcoi/sum(m)*m(3))/m(3);
-dfdt(1) =  (Pm(2)-Pe(2)-Pcoi/sum(m)*m(2))/d(2); 
-dfdt(2) =  (Pm(3)-Pe(3)-Pcoi/sum(m)*m(3))/d(3);
+dfdt(1) =  (Pm(2)-Pe(2)-Pcoi/sum(m)*m(2))/m(2); 
+dfdt(2) =  (Pm(3)-Pe(3)-Pcoi/sum(m)*m(3))/m(3);
 
 % power of load bus
 dfdt(3) = -Pnet(1);

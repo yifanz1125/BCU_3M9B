@@ -1,4 +1,4 @@
-function [fault_delta_gen,fault_omega,fault_omegac,delta_net_faultclear,voltage_net_faultclear,Exittm]=Fun_Cal_Exitpoint_SPM(Tlength,Tunit,fault,postfault,preset,delta0,omega0,delta_net0,voltage_net0,Basevalue)
+function [fault_delta_gen,fault_omega,fault_omegac,delta_net_faultclear,voltage_net_faultclear,Exittm,Dotproduct]=Fun_Cal_Exitpoint_SPM(Tlength,Tunit,fault,postfault,preset,delta0,omega0,delta_net0,voltage_net0,Basevalue)
   %% initialize 
     flag_exit=0;
     cycle=fix(Tlength/Tunit);
@@ -11,7 +11,7 @@ function [fault_delta_gen,fault_omega,fault_omegac,delta_net_faultclear,voltage_
     nbus=preset.nbus;
     flag_wrap=zeros(ngen,1);
     Pe_post=zeros(cycle,ngen);
-    Dotproduct=[0 0];
+    Dotproduct=zeros(cycle,1);
     G_post=real(postfault.Yfull_mod);
     B_post=imag(postfault.Yfull_mod);
     Exittm=0;
@@ -52,7 +52,7 @@ function [fault_delta_gen,fault_omega,fault_omegac,delta_net_faultclear,voltage_
        temp_ini=Results_fsolve;
     end   
 
-%% exist point
+%% exit point
    for tm=1:cycle
        for  i=1:ngen
             for j=1:ngen
@@ -64,11 +64,12 @@ function [fault_delta_gen,fault_omega,fault_omegac,delta_net_faultclear,voltage_
                 Pe_post(tm,i)=Pe_post(tm,i)+E(i)*voltage_net_faultclear(tm,l)*B_post(i,l+ngen)*sin(ddelta)+E(i)*voltage_net_faultclear(tm,l)*G_post(i,l+ngen)*cos(ddelta);
             end
        end
-       Dotproduct(1)=Dotproduct(2);
-       Dotproduct(2)=(Pm'-Pe_post(tm,:))*fault_omega(tm,:)';
-       if(flag_exit==0&&tm>2&&Dotproduct(1)<0&&Dotproduct(2)>0)
+       Dotproduct(tm)=(Pm'-Pe_post(tm,:))*fault_omegac(tm,:)';
+       if tm>2
+       if(flag_exit==0 && Dotproduct(tm-1)<0 && Dotproduct(tm)>0)
             flag_exit=1;
             Exittm=tm-1;
+       end
        end
    end
 end

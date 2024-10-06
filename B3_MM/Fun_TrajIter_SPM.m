@@ -1,10 +1,5 @@
-    system = "postfault";
-    delta0=x_fault_all(end,1:3)';
-    omega0=x_fault_all(end,16:18)';
-    [delta_net_s,Voltage_net_s,flag_iter,n_iter,err] = Fun_AEiteration_SPM(temp_ini(1:6),temp_ini(7:12),delta0,preset,Basevalue,system,1e4,1e-10);
-    theta_net0 =delta_net_s;
-    voltage_net0=Voltage_net_s;
-    cycle=round((Iter.Ttotal-Iter.Trecover)/Iter.Tunit);
+function [delta_RK4,omega_RK4,deltac_RK4,omegacoi_RK4,theta_net_RK4,voltage_net_RK4,cycle]=Fun_TrajIter_SPM(Tlength,Tunit,system,preset,delta0,omega0,theta_net0,voltage_net0,Basevalue)
+    cycle=round(Tlength/Tunit);
     ngen=preset.ngen;
     nbus=preset.nbus;
     omega_RK4=zeros(cycle,ngen);
@@ -19,7 +14,6 @@
     K_deltaomega=zeros(ngen*2,4);
     RK4ratio=[1;2;2;1]/6;
     flag_wrap=zeros(ngen,1);
-    Tunit = Iter.Tunit;
 %% initialize
     delta_RK4(1,:)=delta0;
     omega_RK4(1,:)=omega0;
@@ -59,20 +53,22 @@
            theta_net_RK4(tm+1,:) = net_value_new(1:6)';
            voltage_net_RK4(tm+1,:) = net_value_new(7:12)';
        end
-       
-       %[delta_net_s,voltage_net_s,flag_iter,n_iter,err] = Fun_AEiteration_SPM(net_value(1:6),net_value(7:12),delta_RK4(tm+1,:),preset,Basevalue,system,1e4,1e-10);
+              
+%        [delta_net_s,voltage_net_s,flag_iter,n_iter,err] = Fun_AEiteration_SPM(net_value(1:6),net_value(7:12),delta_RK4(tm+1,:),preset,Basevalue,system,1e4,1e-10);
 %        net_value_new = [delta_net_s;voltage_net_s];
 %        if flag_iter~=1
-%                disp('error=');
-%                disp(maxabs(fval));
+%                disp('flag_iter=');
+%                disp(flag_iter);
 %                disp('tm=');
-%                disp(maxabs(tm));
+%                disp(tm);
+%                disp('error=');
+%                disp(maxabs(err));
 %                error('cannot find fault-clear state! \n');
 %        else
 %            theta_net_RK4(tm+1,:) = net_value_new(1:6)';
 %            voltage_net_RK4(tm+1,:) = net_value_new(7:12)';
 %        end
-   end
+    end
     
     % theta wrap procedure
         for i=1:ngen
@@ -93,3 +89,4 @@
         omegac_RK4(tm,:)=omega_RK4(tm,:)-omegacoi_RK4(tm,1)*ones(1,ngen);
 
     end
+end
