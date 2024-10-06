@@ -29,8 +29,8 @@ for i=1:ngen
 end
 Pcoi=sum(Pm)-sum(Pe);
 
-dfdt(1) =  (Pm(2)-Pe(2)-Pcoi/sum(m)*m(2))/m(2); 
-dfdt(2) =  (Pm(3)-Pe(3)-Pcoi/sum(m)*m(3))/m(3);
+dfdt(1) =  (Pm(2)-Pe(2)-Pcoi/sum(m)*m(2)); 
+dfdt(2) =  (Pm(3)-Pe(3)-Pcoi/sum(m)*m(3));
 
 
 dfdt = dfdt.';

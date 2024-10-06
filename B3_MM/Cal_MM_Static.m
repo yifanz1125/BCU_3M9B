@@ -13,8 +13,8 @@ close all
 %% Generator parameters
 % 9 bus sys===========================================
     Basevalue.omegab=2*pi*60;
-    preset.m=[0.1254;0.034;0.016];  %[10;10;10]/omegab;
-    preset.d=preset.m.*[0.2;0.2;0.2];
+    preset.m=[0.1254;0.034;0.016];  %[10;10;10]/omegab; preset.m=[0.1254;0.034;0.016];[0.016;0.034;0.1254]
+    preset.d=preset.m.*[1;0.1;0.1];
 % % 39 bus sys=========================================
 %     Basevalue.omegab=2*pi*50;
 %     preset.m=[42.0;30.3;35.8;28.6;26;34.8;26.4;24.3;34.5;50]*2/(Basevalue.omegab);
@@ -71,7 +71,7 @@ close all
     clear path_matpower path_matdata
 %% Fault settings
 %     preset.flagfault=1; % 1--fault occur
-    preset.faultline=[9;6];  % [Frombus Tobus]
+    preset.faultline=[5;7];  % [Frombus Tobus]
     preset.faultposition=0;
     fault.faultline=preset.faultline;
 %     fault.flagfault=preset.flagfault; % 1--fault occur

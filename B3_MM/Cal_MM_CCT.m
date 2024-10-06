@@ -1,4 +1,4 @@
-close all
+%close all
 clear
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Cal_MM_Static;
@@ -43,7 +43,7 @@ clear DT HT ngen
     plot(prefault.SEP_delta(2),prefault.SEP_delta(3),'.k','LineWidth',2,'MarkerSize',10);
     plot(fault.traj.thetac(:,2),fault.traj.thetac(:,3),'-','LineWidth',1.5,'color',[200/255 200/255 200/255]);
     axis([0,2.5,0,3.5]);
-    clear omega_RK4 omegac_RK4 theta_RK4 thetac_RK4
+    %clear omega_RK4 omegac_RK4 theta_RK4 thetac_RK4
     clear Tfault delta0 omega0
 %% Calculate MGP from exit point along boundary
     [MGP.thetac_MGP,MGP.num_Traj,MGP.flag_MGP,Normtt, norm_min]=Fun_Cal_MGP(escape.thetac,postfault,preset);

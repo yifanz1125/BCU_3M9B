@@ -5,17 +5,18 @@ Cal_MM_Static_SPM;
 clear EMF Yload Case netdata
 clear DT HT ngen
 %% Calculate exit point along fault-on Trajectory
-    Tfault=0.26;   Tunit=1e-4;
+    Tfault=2;   Tunit=1e-4;
     delta0=prefault.SEP_delta;
     omega0=prefault.SEP_omegapu*Basevalue.omegab;
     delta_net0=prefault.net_delta;
     voltage_net0=prefault.net_voltage;
-    [deltac,omega,omegac,theta,voltage,escape.tm]=Fun_Cal_Exitpoint_SPM(Tfault,Tunit,fault,postfault,preset,delta0,omega0,delta_net0,voltage_net0,Basevalue);
+    [deltac,omega,omegac,theta,voltage,escape.tm,escape.Dotproduct]=Fun_Cal_Exitpoint_SPM(Tfault,Tunit,fault,postfault,preset,delta0,omega0,delta_net0,voltage_net0,Basevalue);
     escape.deltac=deltac(escape.tm,:);
     escape.omegac=omegac(escape.tm,:);
     escape.omega=omega(escape.tm,:)-Basevalue.omegab;
     escape.theta=theta(escape.tm,:);
-    escape.voltage=ovoltage(escape.tm,:);
+    escape.voltage=voltage(escape.tm,:);
+
     fault.traj.deltac=deltac;
     fault.traj.omega=omega;   % unit: rad/s    
     fault.traj.theta=theta;
@@ -25,27 +26,25 @@ clear DT HT ngen
     fault.traj.Tlength=Tfault;
 
 
-    strEXIT=['Exit point is [' repmat('%1.4f ',1,numel(escape.thetac)) '] (in COI frame)\n'];
-    fprintf(strEXIT,escape.thetac);
+    strEXIT=['Exit point is [' repmat('%1.4f ',1,numel(escape.deltac)) '] (in COI frame)\n'];
+    fprintf(strEXIT,escape.deltac);
     f1=figure(1);
     f2=figure(2);
     figure(f2);
     grid on; hold on;
-    %close(f1);
-    %clear f1
     figure(f1);
     xlabel('\delta_2');
     ylabel('\delta_3');
-    plot(escape.thetac(2),escape.thetac(3),'xr','LineWidth',1.5,'MarkerSize',10);
+    plot(escape.deltac(2),escape.deltac(3),'xr','LineWidth',1.5,'MarkerSize',10);
     grid on;
     hold on;
     plot(prefault.SEP_delta(2),prefault.SEP_delta(3),'.k','LineWidth',2,'MarkerSize',10);
-    plot(fault.traj.thetac(:,2),fault.traj.thetac(:,3),'-','LineWidth',1.5,'color',[200/255 200/255 200/255]);
+    plot(fault.traj.deltac(:,2),fault.traj.deltac(:,3),'-','LineWidth',1.5,'color',[200/255 200/255 200/255]);
     axis([0,2.5,0,3.5]);
     clear omega_RK4 omegac_RK4 theta_RK4 thetac_RK4
     clear Tfault delta0 omega0
 %% Calculate MGP from exit point along boundary
-    [MGP.thetac_MGP,MGP.num_Traj,MGP.flag_MGP,Normtt, norm_min]=Fun_Cal_MGP(escape.thetac,postfault,preset);
+    [MGP.thetac_MGP,MGP.num_Traj,MGP.flag_MGP,Normtt, norm_min]=Fun_Cal_MGP_SPM(escape.deltac,escape.theta,escape.voltage,postfault,preset);
     strMGP=['Selected MGP is [' repmat('%1.4f ',1,numel(MGP.thetac_MGP)) ']\n'];
     figure(f1);
     plot(MGP.thetac_MGP(2),MGP.thetac_MGP(3),'xr','LineWidth',1.5,'MarkerSize',10);

@@ -1,6 +1,6 @@
-% x(2*nbus-ngen) = deltac(1: 3) | deltac_net(4:nbus) |
-% V_net(10:9+nbus-ngen)|omega(16:18)
-function dfdt = F_3M9B_SP_ODE(x,system)
+% x(2*ngen) = deltac(1: 3) | omega(4:6)
+%net_value = deltac_net(1:6) | V_net(7:12)
+function dfdt = F_3M9B_SP_ODE(x,net_value,system)
 %% parameters preprocess  
 preset = evalin('base','preset');
 prefault = evalin('base','prefault');
@@ -15,9 +15,9 @@ mT=sum(m,1);
 omegab = Basevalue.omegab;
 
 deltac = [x(1) x(2) x(3)];
-omega1 = x(16);
-omega2 = x(17);
-omega3 = x(18);
+omega1 = x(4);
+omega2 = x(5);
+omega3 = x(6);
 omega_coi = [omega1 omega2 omega3]*m/mT;
 
 
@@ -38,11 +38,11 @@ switch system
 end
 
 if system == "fault1"
-    deltac_net = [x(4) x(5) x(6) x(7) x(8)];
-    V_net=[x(10) x(11) x(12) x(13) x(14)];
+    deltac_net = net_value(1:5);
+    V_net = net_value(7:11);
 else
-    deltac_net = [x(4) x(5) x(6) x(7) x(8) x(9)];
-    V_net=[x(10) x(11) x(12) x(13) x(14) x(15)];
+    deltac_net = net_value(1:6);
+    V_net=net_value(7:12);
 end
 
 G=real(Yfull);
@@ -124,42 +124,9 @@ dfdt(2) = omega2 - omega_coi;% deltac2
 dfdt(3) = omega3 - omega_coi;% deltac3
 
 %omega
-dfdt(16) = (Pm(1)-Pe(1)-d(1)*(omega1-omegab))/m(1);% omega1
-dfdt(17) = (Pm(2)-Pe(2)-d(2)*(omega2-omegab))/m(2);% omega2
-dfdt(18) = (Pm(3)-Pe(3)-d(3)*(omega3-omegab))/m(3);% omega3
-
-%% agebric equation
-if system == "fault1"
-% power of load bus
-dfdt(4) = -Pnet(1);
-dfdt(5) = -Pnet(2);
-dfdt(6) = -Pnet(3);
-dfdt(7) = -Pnet(4);
-dfdt(8) = -Pnet(5);
-dfdt(9) = 0;
-% reactive power of load bus
-dfdt(10) = -Qnet(1);
-dfdt(11) = -Qnet(2);
-dfdt(12) = -Qnet(3);
-dfdt(13) = -Qnet(4);
-dfdt(14) = -Qnet(5);
-dfdt(15) = 0;
-else
-% power of load bus
-dfdt(4) = -Pnet(1);
-dfdt(5) = -Pnet(2);
-dfdt(6) = -Pnet(3);
-dfdt(7) = -Pnet(4);
-dfdt(8) = -Pnet(5);
-dfdt(9) = -Pnet(6);
-% reactive power of load bus
-dfdt(10) = -Qnet(1);
-dfdt(11) = -Qnet(2);
-dfdt(12) = -Qnet(3);
-dfdt(13) = -Qnet(4);
-dfdt(14) = -Qnet(5);
-dfdt(15) = -Qnet(6);
-end
+dfdt(4) = (Pm(1)-Pe(1)-d(1)*(omega1-omegab))/m(1);% omega1
+dfdt(5) = (Pm(2)-Pe(2)-d(2)*(omega2-omegab))/m(2);% omega2
+dfdt(6) = (Pm(3)-Pe(3)-d(3)*(omega3-omegab))/m(3);% omega3
 
 dfdt = dfdt.';
 

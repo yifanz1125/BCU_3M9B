@@ -6,11 +6,11 @@
 omegab=Basevalue.omegab;
 %% Tfault and Tclear set
     Iter.Tfault=20;
-    Iter.Trecover=20.27;%20.246;
-    Iter.Ttotal=100;
+    Iter.Trecover=20.2;%20.27;
+    Iter.Ttotal=60;
     Iter.Tunit=1e-4;
     T_before = 10;
-    T_after = 20;
+    T_after = 40;
 %% iteration procedure
 % prefault
     delta0=prefault.SEP_delta;%zeros(ngen,1)D1D
@@ -154,6 +154,24 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
      delta_net_clear_DAE = [x_prefault_all(2:end,4:9); delta_net_faultclear; x_postfault_all(2:end,4:9)];
      voltage_net_clear_DAE = [x_prefault_all(2:end,10:15); voltage_net_faultclear; x_postfault_all(2:end,10:15)];
 
+%% dae based Runge-Kutta
+
+% system = "postfault";
+% delta0=x_fault_all(end,1:3)';
+% omega0=x_fault_all(end,16:18)';
+% [delta_net_s,Voltage_net_s,flag_iter,n_iter,err] = Fun_AEiteration_SPM(temp_ini(1:6),temp_ini(7:12),delta0,preset,Basevalue,system,1e4,1e-10);
+% [delta_RK4,omega_RK4,deltac_RK4,omegacoi_RK4,theta_net_RK4,voltage_net_RK4,cycle]=Fun_TrajIter_SPM(Iter.Ttotal-Iter.Trecover,Iter.Tunit,system,preset,delta0,omega0,delta_net_s,Voltage_net_s,Basevalue);
+% omegac_RK4=(omega_RK4-omegacoi_RK4)./omegab;
+% omegacoi_RK4=omegacoi_RK4./omegab;
+% 
+% Tpre=Iter.Tfault;
+% Tfault=Iter.Trecover-Iter.Tfault;
+% Tpost=Iter.Ttotal-Iter.Trecover;
+% Tunit=Iter.Tunit;
+% Ttotal=Iter.Ttotal;
+% TM_pre=0:Tunit:Tpre-Tunit;
+% TM_fault=Tpre:Tunit:Tpre+Tfault-Tunit;
+% TM_post=round((Tpre+Tfault)/Tunit)*Tunit:Tunit:(round((Ttotal)/Tunit)-1)*Tunit;
 
 %% plot for DAE
 % deltac
@@ -163,9 +181,16 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
     plot(t_timedomain_DAE,deltac_timedomain_DAE(:,1),'linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
     plot(t_timedomain_DAE,deltac_timedomain_DAE(:,2),'linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
     plot(t_timedomain_DAE,deltac_timedomain_DAE(:,3),'linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
-%     plot(t_timedomain,deltac_timedomain(:,1),'LineStyle',':','linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
-%     plot(t_timedomain,deltac_timedomain(:,2),'LineStyle',':','linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
-%     plot(t_timedomain,deltac_timedomain(:,3),'LineStyle',':','linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
+% 
+%         plot(IterData.Tout(n_start:n_end),IterData.thetac((n_start:n_end),1),'LineStyle','--','linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
+%         plot(IterData.Tout(n_start:n_end),IterData.thetac((n_start:n_end),2),'LineStyle','--','linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
+%         plot(IterData.Tout(n_start:n_end),IterData.thetac((n_start:n_end),3),'LineStyle','--','linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
+%        
+
+%      plot(TM_post,delta_RK4(:,1),'LineStyle',':','linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
+%      plot(TM_post,delta_RK4(:,2),'LineStyle',':','linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
+%      plot(TM_post,delta_RK4(:,3),'LineStyle',':','linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
+
     grid on;    grid minor;
     ylim([-2,3]);
     yl=ylim;
@@ -190,7 +215,7 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
     ax.FontSize=14;
     xlabel('Time(s)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[xlab_x,xlab_y,-1]);
     ylabel('\delta_c(rad)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[ylab_x,ylab_y,-1]);
-%omega
+%% omega
     figure;
     set(gca,'position',[0.115,0.12,0.815,0.84]);
     set(gcf,'position',[60 200 600 450]);
@@ -200,10 +225,11 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
     plot(t_timedomain_DAE,omegac_timedomain_DAE(:,3),'linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
     plot(t_timedomain_DAE,omegacoi_timedomain_DAE-1,'linewidth',2,'color',[0/255 0/255 0/255]);    hold on;
 
-%     plot(t_timedomain,omegac_timedomain(:,1),'LineStyle',':','linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
-%     plot(t_timedomain,omegac_timedomain(:,2),'LineStyle',':','linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
-%     plot(t_timedomain,omegac_timedomain(:,3),'LineStyle',':','linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
-%     plot(t_timedomain,omegacoi_timedomain-1,'LineStyle',':','linewidth',2,'color',[0/255 0/255 0/255]);    hold on;
+
+%     plot(TM_post,omegac_RK4(:,1),'LineStyle',':','linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
+%     plot(TM_post,omegac_RK4(:,2),'LineStyle',':','linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
+%     plot(TM_post,omegac_RK4(:,3),'LineStyle',':','linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
+%     plot(TM_post,omegacoi_RK4-1,'LineStyle',':','linewidth',2,'color',[0/255 0/255 0/255]);    hold on;
 
     xlim([20-T_before 20+T_after]);
     grid on;    grid minor;
@@ -230,7 +256,7 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
     xlabel('Time(s)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[xlab_x,xlab_y,-1]);
     ylabel('\omega(pu)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[ylab_x,ylab_y,-1]);
     
-    %Bus angle
+    %% Bus angle
     figure;
     set(gca,'position',[0.115,0.12,0.815,0.84]);
     set(gcf,'position',[60 200 600 450]);
@@ -253,13 +279,16 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
     plot(t_fault(2:end),delta_net_faultclear(:,5),'LineStyle',':','linewidth',2,'color',[0.3010 0.7450 0.9330]);    hold on;
     plot(t_fault(2:end),delta_net_faultclear(:,6),'LineStyle',':','linewidth',2,'color',[0.6350 0.0780 0.1840]);    hold on;
 
-%     plot(t_timedomain,Vpnet(:,1),'LineStyle',':','linewidth',2);    hold on;
-%     plot(t_timedomain,Vpnet(:,2),'LineStyle',':','linewidth',2);    hold on;
-%     plot(t_timedomain,Vpnet(:,3),'LineStyle',':','linewidth',2);    hold on;
-%     plot(t_timedomain,Vpnet(:,4),'LineStyle',':','linewidth',2);    hold on;
-%     plot(t_timedomain,Vpnet(:,5),'LineStyle',':','linewidth',2);    hold on;
-%     plot(t_timedomain,Vpnet(:,6),'LineStyle',':','linewidth',2);    hold on;
-%     
+
+%     plot(TM_post,theta_net_RK4(:,1),'LineStyle',':','linewidth',2,'color',[0.8500 0.3250 0.0980]);    hold on;
+%     plot(TM_post,theta_net_RK4(:,2),'LineStyle',':','linewidth',2,'color',[0.9290 0.6940 0.1250]);    hold on;
+%     plot(TM_post,theta_net_RK4(:,3),'LineStyle',':','linewidth',2,'color',[0.4940 0.1840 0.5560]);    hold on;
+%     plot(TM_post,theta_net_RK4(:,4),'LineStyle',':','linewidth',2,'color',[0.4660 0.6740 0.1880]);    hold on;
+%     plot(TM_post,theta_net_RK4(:,5),'LineStyle',':','linewidth',2,'color',[0.3010 0.7450 0.9330]);    hold on;
+%     plot(TM_post,theta_net_RK4(:,6),'LineStyle',':','linewidth',2,'color',[0.6350 0.0780 0.1840]);    hold on;
+
+
+    
     xlim([20-T_before 20+T_after]);
     grid on;    grid minor;
     ylim([-2,3]);
@@ -290,7 +319,7 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
     xlabel('Time(s)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[xlab_x,xlab_y,-1]);
     ylabel('\theta_c(rad)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[ylab_x,ylab_y,-1]);
 
-    %Bus voltage
+    %% Bus voltage
     figure;
     set(gca,'position',[0.115,0.12,0.815,0.84]);
     set(gcf,'position',[60 200 600 450]);
@@ -314,13 +343,13 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
     plot(t_fault(2:end),voltage_net_faultclear(:,6),'LineStyle',':','linewidth',2,'color',[0.6350 0.0780 0.1840]);    hold on;
 
 
-%     plot(t_timedomain,Vmnet(:,1),'LineStyle',':','linewidth',2);    hold on;
-%     plot(t_timedomain,Vmnet(:,2),'LineStyle',':','linewidth',2);    hold on;
-%     plot(t_timedomain,Vmnet(:,3),'LineStyle',':','linewidth',2);    hold on;
-%     plot(t_timedomain,Vmnet(:,4),'LineStyle',':','linewidth',2);    hold on;
-%     plot(t_timedomain,Vmnet(:,5),'LineStyle',':','linewidth',2);    hold on;
-%     plot(t_timedomain,Vmnet(:,6),'LineStyle',':','linewidth',2);    hold on;
-    
+%     plot(TM_post,voltage_net_RK4(:,1),'LineStyle',':','linewidth',2,'color',[0.8500 0.3250 0.0980]);    hold on;
+%     plot(TM_post,voltage_net_RK4(:,2),'LineStyle',':','linewidth',2,'color',[0.9290 0.6940 0.1250]);    hold on;
+%     plot(TM_post,voltage_net_RK4(:,3),'LineStyle',':','linewidth',2,'color',[0.4940 0.1840 0.5560]);    hold on;
+%     plot(TM_post,voltage_net_RK4(:,4),'LineStyle',':','linewidth',2,'color',[0.4660 0.6740 0.1880]);    hold on;
+%     plot(TM_post,voltage_net_RK4(:,5),'LineStyle',':','linewidth',2,'color',[0.3010 0.7450 0.9330]);    hold on;
+%     plot(TM_post,voltage_net_RK4(:,6),'LineStyle',':','linewidth',2,'color',[0.6350 0.0780 0.1840]);    hold on;
+%     
     xlim([20-T_before 20+T_after]);
     grid on;    grid minor;
     ylim([-0.1,1.2]);
@@ -409,19 +438,22 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
 %         figure;
 %         set(gca,'position',[0.115,0.12,0.815,0.84]);
 %         set(gcf,'position',[60 200 600 450]);
-% 
+
         n_start=cycle_pre-fix(T_before/Iter.Tunit)+1;
         n_end=cycle_pre+fix(T_after/Iter.Tunit);
-%         
+        
 %         plot(IterData.Tout(n_start:n_end),IterData.thetac((n_start:n_end),1),'linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
 %         plot(IterData.Tout(n_start:n_end),IterData.thetac((n_start:n_end),2),'linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
 %         plot(IterData.Tout(n_start:n_end),IterData.thetac((n_start:n_end),3),'linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
 %         plot(IterData.Tout(n_start:n_end),IterData.deltacd((n_start:n_end),1),'linewidth',2,'color',[200/255 200/255 200/255]);    hold on;
 % 
 %         %ode time domain
-%         plot(t_timedomain,deltac_timedomain(:,1),'LineStyle',':','linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
-%         plot(t_timedomain,deltac_timedomain(:,2),'LineStyle',':','linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
-%         plot(t_timedomain,deltac_timedomain(:,3),'LineStyle',':','linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
+% %         plot(t_timedomain,deltac_timedomain(:,1),'LineStyle',':','linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
+% %         plot(t_timedomain,deltac_timedomain(:,2),'LineStyle',':','linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
+% %         plot(t_timedomain,deltac_timedomain(:,3),'LineStyle',':','linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
+%      plot(TM_post,delta_RK4(:,1),'LineStyle',':','linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
+%      plot(TM_post,delta_RK4(:,2),'LineStyle',':','linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
+%      plot(TM_post,delta_RK4(:,3),'LineStyle',':','linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
 % 
 %         xlim([20-T_before 20+T_after]);
 %         grid on;    grid minor;
@@ -447,8 +479,8 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
 %         ax.FontSize=14;
 %         xlabel('Time(s)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[xlab_x,xlab_y,-1]);
 %         ylabel('\delta_c(rad)','FontSize',18,'FontName','Times New Roman','FontAngle','italic','FontWeight','bold','position',[ylab_x,ylab_y,-1]);
-% 
-% 
+
+
 %         figure;
 %         set(gca,'position',[0.115,0.12,0.815,0.84]);
 %         set(gcf,'position',[60 200 600 450]);
@@ -459,10 +491,14 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
 %         plot(IterData.Tout(n_start:n_end),IterData.omegacoi((n_start:n_end),1)-1,'linewidth',2,'color',[0/255 0/255 0/255]);    hold on;
 %         plot(IterData.Tout(n_start:n_end),IterData.omegacd((n_start:n_end),1),'linewidth',2,'color',[200/255 200/255 200/255]);    hold on;
 % 
-%         plot(t_timedomain,omegac_timedomain(:,1),'LineStyle',':','linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
-%         plot(t_timedomain,omegac_timedomain(:,2),'LineStyle',':','linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
-%         plot(t_timedomain,omegac_timedomain(:,3),'LineStyle',':','linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
-%         plot(t_timedomain,omegacoi_timedomain-1,'LineStyle',':','linewidth',2,'color',[0/255 0/255 0/255]);    hold on;
+% %         plot(t_timedomain,omegac_timedomain(:,1),'LineStyle',':','linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
+% %         plot(t_timedomain,omegac_timedomain(:,2),'LineStyle',':','linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
+% %         plot(t_timedomain,omegac_timedomain(:,3),'LineStyle',':','linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
+% %         plot(t_timedomain,omegacoi_timedomain-1,'LineStyle',':','linewidth',2,'color',[0/255 0/255 0/255]);    hold on;
+%         plot(TM_post,omegac_RK4(:,1),'LineStyle',':','linewidth',2,'color',[0/255 95/255 255/255]);    hold on;
+%         plot(TM_post,omegac_RK4(:,2),'LineStyle',':','linewidth',2,'color',[255/255 135/255 0/255]);    hold on;
+%         plot(TM_post,omegac_RK4(:,3),'LineStyle',':','linewidth',2,'color',[0/255 175/255 0/255]);    hold on;
+%         plot(TM_post,omegacoi_RK4-1,'LineStyle',':','linewidth',2,'color',[0/255 0/255 0/255]);    hold on;
 % 
 %         xlim([20-T_before 20+T_after]);
 %         grid on;    grid minor;
@@ -504,6 +540,14 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
 %         plot(t_timedomain,Vpnet(:,4),'linewidth',2);    hold on;
 %         plot(t_timedomain,Vpnet(:,5),'linewidth',2);    hold on;
 %         plot(t_timedomain,Vpnet(:,6),'linewidth',2);    hold on;
+% 
+%         plot(TM_post,theta_net_RK4(:,1),'LineStyle',':','linewidth',2,'color',[0.8500 0.3250 0.0980]);    hold on;
+%         plot(TM_post,theta_net_RK4(:,2),'LineStyle',':','linewidth',2,'color',[0.9290 0.6940 0.1250]);    hold on;
+%         plot(TM_post,theta_net_RK4(:,3),'LineStyle',':','linewidth',2,'color',[0.4940 0.1840 0.5560]);    hold on;
+%         plot(TM_post,theta_net_RK4(:,4),'LineStyle',':','linewidth',2,'color',[0.4660 0.6740 0.1880]);    hold on;
+%         plot(TM_post,theta_net_RK4(:,5),'LineStyle',':','linewidth',2,'color',[0.3010 0.7450 0.9330]);    hold on;
+%         plot(TM_post,theta_net_RK4(:,6),'LineStyle',':','linewidth',2,'color',[0.6350 0.0780 0.1840]);    hold on;
+% 
 %         
 %         xlim([20-T_before 20+T_after]);
 %         grid on;    grid minor;
@@ -550,6 +594,13 @@ options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,1
 %         plot(t_timedomain,Vmnet(:,4),'linewidth',2);    hold on;
 %         plot(t_timedomain,Vmnet(:,5),'linewidth',2);    hold on;
 %         plot(t_timedomain,Vmnet(:,6),'linewidth',2);    hold on;
+%                 
+%         plot(TM_post,voltage_net_RK4(:,1),'LineStyle',':','linewidth',2,'color',[0.8500 0.3250 0.0980]);    hold on;
+%         plot(TM_post,voltage_net_RK4(:,2),'LineStyle',':','linewidth',2,'color',[0.9290 0.6940 0.1250]);    hold on;
+%         plot(TM_post,voltage_net_RK4(:,3),'LineStyle',':','linewidth',2,'color',[0.4940 0.1840 0.5560]);    hold on;
+%         plot(TM_post,voltage_net_RK4(:,4),'LineStyle',':','linewidth',2,'color',[0.4660 0.6740 0.1880]);    hold on;
+%         plot(TM_post,voltage_net_RK4(:,5),'LineStyle',':','linewidth',2,'color',[0.3010 0.7450 0.9330]);    hold on;
+%         plot(TM_post,voltage_net_RK4(:,6),'LineStyle',':','linewidth',2,'color',[0.6350 0.0780 0.1840]);    hold on;
 %         
 %         xlim([20-T_before 20+T_after]);
 %         grid on;    grid minor;

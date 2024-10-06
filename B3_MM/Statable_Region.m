@@ -1,5 +1,5 @@
 N=2;
-x=(0:0.1:1)*2*pi;
+x=(-1:0.1:1)*2*pi;
 n = length(x);
 x_set = zeros(N,n^N);
 for m = 0:(n^N - 1)
@@ -10,6 +10,7 @@ for m = 0:(n^N - 1)
     end
 end
 torralence = 1e-2; 
+clear ep_set ep_set_ext
 %% calculate EPs
 m = 1;
 ep_set = [];
@@ -18,7 +19,11 @@ for n = 1:length(x_set(1,:))
     xep = x_set(:,n);
     [xep,ferr,~,~,A] = fsolve(@f,xep,options);
 
-    xep = mod(xep,2*pi);
+    mmm=preset.m;
+    xep23_1 = [xep(1)+(mmm(2)*xep(1)+mmm(3)*xep(2))/mmm(1); xep(2)+(mmm(2)*xep(1)+mmm(3)*xep(2))/mmm(1)];
+    xep23_1 = mod(xep23_1,2*pi);
+    coi_1 = (xep23_1(1)*mmm(2)+xep23_1(2)*mmm(3))/sum(mmm);
+    xep = xep23_1-coi_1;
     
     if maxabs(ferr) < torralence
         if isnewxep(ep_set,xep,torralence)
@@ -47,6 +52,9 @@ for n = 1:length(x_set(1,:))
     end
 end
 
+position1 = [1-mmm(2)/sum(mmm); -mmm(2)/sum(mmm)];
+position2 = [-mmm(3)/sum(mmm); 1-mmm(3)/sum(mmm)];
+position = [position1 position2];
 
 for n = 1:length(ep_set)
         m = (n-1)*6;
@@ -57,20 +65,20 @@ for n = 1:length(ep_set)
         ep_set_ext(m+5)=ep_set(n); %#ok<*AGROW> 
         ep_set_ext(m+6)=ep_set(n);
     
-        ep_set_ext(m+2).xep(1) = ep_set(n).xep(1) - 2*pi;
-    
-        ep_set_ext(m+3).xep(2) = ep_set(n).xep(2) - 2*pi;
-    
-        ep_set_ext(m+4).xep(1) = ep_set(n).xep(1) - 2*pi;
-        ep_set_ext(m+4).xep(2) = ep_set(n).xep(2) - 2*pi;
-        ep_set_ext(m+5).xep(1) = ep_set(n).xep(1);
-        ep_set_ext(m+5).xep(2) = ep_set(n).xep(2) - 4*pi;
+        ep_set_ext(m+2).xep = ep_set(n).xep - position*[2*pi;0];
 
-        ep_set_ext(m+6).xep(1) = ep_set(n).xep(1) - 2*pi;
-        ep_set_ext(m+6).xep(2) = ep_set(n).xep(2) - 4*pi;
+    
+        ep_set_ext(m+3).xep = ep_set(n).xep - position*[0;2*pi];
+    
+        ep_set_ext(m+4).xep = ep_set(n).xep - position*[2*pi;2*pi];
+
+        ep_set_ext(m+5).xep = ep_set(n).xep - position*[0;4*pi];
+
+        ep_set_ext(m+6).xep = ep_set(n).xep - position*[2*pi;4*pi];
 
 end
-figure;
+f1=figure(1);
+figure(f1);
 hold on;
 grid on;
 color_code = {'blue','magenta','red','black'};
@@ -90,14 +98,14 @@ for m = 1 : length(ep_set_ext)
         end        
 end
 %% 
-xep = ep_set_ext(19).xep;
-v = ep_set_ext(19).v;
-perturb = 1e-2;
-[~ , x_p] = ode45(@f_backward,[0,50],xep+v*perturb,odeset('RelTol',1e-5));
-[~ , x_n] = ode45(@f_backward,[0,50],xep-v*perturb,odeset('RelTol',1e-5));
-x_all = [flip(x_n,1);x_p];
-plot(x_all(:,1),x_all(:,2),'b-','linewidth',1);
-axis([0,2.5,0,3.5]);
+% xep = ep_set_ext(19).xep;
+% v = ep_set_ext(19).v;
+% perturb = 1e-2;
+% [~ , x_p] = ode45(@f_backward,[0,50],xep+v*perturb,odeset('RelTol',1e-5));
+% [~ , x_n] = ode45(@f_backward,[0,50],xep-v*perturb,odeset('RelTol',1e-5));
+% x_all = [flip(x_n,1);x_p];
+% plot(x_all(:,1),x_all(:,2),'b-','linewidth',1);
+% axis([0,2.5,0,3.5]);
 %%
 
 for m = 1:length(ep_set)
@@ -115,8 +123,8 @@ function yes = isnewxep(ep_set,xep,torr)
     minerr = inf;
     for m = 1 : length(ep_set)
         err = abs(xep - ep_set(m).xep);
-        err = min(err, abs(2*pi-err));
-        err = max(err);
+        %err = min(err, abs(2*pi-err));
+        %err = max(err);
         if minerr > err
             minerr = err;
         end
@@ -141,5 +149,13 @@ end
 function dfdt = f_backward(t,x)
     dfdt = -f(x);
 end
+function out = maxabs(in)
 
+    out = abs(in);
+    
+    while length(out) > 1
+        out = max(out);
+    end
+
+end
 
