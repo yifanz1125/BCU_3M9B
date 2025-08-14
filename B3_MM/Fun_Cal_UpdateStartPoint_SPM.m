@@ -15,23 +15,16 @@ function [deltac_update,theta_update,voltage_update,flag_update]=Fun_Cal_UpdateS
 %% initialization
     Pe=zeros(ngen,1);
     len_ray=1e-3;
-    dir_ray=zeros(1,ngen);  % vector from SEP_post to deltac_lastpoint
-    dir_ray_theta=zeros(1,nbus); 
-    dir_ray_voltage=zeros(1,nbus);  
+
 
     deltac_SEP=postfault.SEP_delta;
     theta_SEP=postfault.net_delta;
     voltage_SEP=postfault.net_voltage;
     dir_ray=deltac_lastpoint-deltac_SEP;
-    dir_ray_theta=theta_lastpoint-theta_SEP;
-    dir_ray_voltage=voltage_lastpoint-voltage_SEP;
+
 
     n_itermax=fix(2*norm(dir_ray)/len_ray);
-    len_ray_theta = 2*norm(dir_ray_theta)/n_itermax;
-    len_ray_voltage = 2*norm(dir_ray_voltage)/n_itermax;
     dir_ray=dir_ray/norm(dir_ray);
-    dir_ray_theta=dir_ray_theta/norm(dir_ray_theta);
-    dir_ray_voltage=dir_ray_voltage/norm(dir_ray_voltage);
 
     n_iter=1;
     Ep_obsv=[0 0 0];
@@ -60,6 +53,7 @@ function [deltac_update,theta_update,voltage_update,flag_update]=Fun_Cal_UpdateS
     end
 %% Search for the local maximum Ep along ray(and extension)
     [Ep(1),Ep(2),Ep(3),Ep(4),Ep(5)]=Fun_Cal_PotentialEnergy_SPM(preset,postfault,deltac_SEP,theta_SEP,voltage_SEP);
+    %[Ep(1),Ep(2),Ep(3)]=Fun_Cal_PotentialEnergy(preset,postfault,deltac_SEP,deltac_SEP);
     Ep_obsv(2)=sum(Ep);
     deltac_act=deltac_SEP+len_ray*dir_ray;
     theta_est = theta_SEP;
@@ -67,6 +61,7 @@ function [deltac_update,theta_update,voltage_update,flag_update]=Fun_Cal_UpdateS
     [theta_act,voltage_act,flag_iter,n_it,err] = Fun_AEiteration_SPM(theta_est,voltage_est,deltac_act,preset,Basevalue,"postfault",1e4,1e-10);
 
     [Ep(1),Ep(2),Ep(3),Ep(4),Ep(5)]=Fun_Cal_PotentialEnergy_SPM(preset,postfault,deltac_act,theta_act,voltage_act);
+    %[Ep(1),Ep(2),Ep(3)]=Fun_Cal_PotentialEnergy(preset,postfault,deltac_SEP,deltac_act);
     Ep_obsv(3)=sum(Ep);
     
     while(n_iter~=-1)
@@ -78,6 +73,7 @@ function [deltac_update,theta_update,voltage_update,flag_update]=Fun_Cal_UpdateS
         [theta_act,voltage_act,flag_iter,n_it,err] = Fun_AEiteration_SPM(theta_est,voltage_est,deltac_act,preset,Basevalue,"postfault",1e4,1e-10);
 
         [Ep(1),Ep(2),Ep(3),Ep(4),Ep(5)]=Fun_Cal_PotentialEnergy_SPM(preset,postfault,deltac_act,theta_act,voltage_act);
+        %[Ep(1),Ep(2),Ep(3)]=Fun_Cal_PotentialEnergy(preset,postfault,deltac_SEP,deltac_act);
         Ep_obsv(3)=sum(Ep);
         Ep0(n_iter)=Ep_obsv(3);
         n_iter=n_iter+1;

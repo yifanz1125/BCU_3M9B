@@ -15,8 +15,8 @@ close all
     Basevalue.omegab=2*pi*60;
     preset.m=[0.1254;0.034;0.016];  %[10;10;10]/omegab;
     preset.d=preset.m.*[0.2;0.2;0.2];
-    preset.PloadZIP = [0 0 1]; % Z I P
-    preset.QloadZIP = [0 0 1]; % Z I P
+    preset.PloadZIP = [1 0 0]; % Z I P
+    preset.QloadZIP = [1 0 0]; % Z I P
 % 9 bus sys===========================================
 %%%%%%% 思考一下怎么把这几项融到powerflow计算中 %%%%%%%%%
     preset.Pmpu=[0.8980;1.3432;0.9419];
@@ -71,7 +71,7 @@ close all
         end
     end
     %% Transfer RXB into Structure-preserved admittance matrix
-        netdata.Y_org=Fun_RXB2Yfull(pfdata.branch.RXB_xd,pfdata);   % admittance without load
+    netdata.Y_org=Fun_RXB2Yfull(pfdata.branch.RXB_xd,pfdata);   % admittance without load
     %% Add Passive load into Network
     Yload=zeros(pfdata.bus.numload,5);
     Iload=zeros(pfdata.bus.numload,3);

@@ -4,7 +4,7 @@
 function [thetac_MGP,num_Traj,flag_MGP,Normtt,norm_min]=Fun_Cal_MGP(thetac_escape,postfault,preset)
 %% Settings
     Tunit=1e-4; % time unit for iteration
-    n_itermax=5;    % maximum steps in one iteration procedure
+    n_itermax=20;    % maximum steps in one iteration procedure
     norm_Tol=1e-5;  % Tolerance set for MGP identification
     n_MGPtraj=0;    % counter for trajectory numbers
     n_MGPtrajmax=1000;  % maximum trajectory numbers

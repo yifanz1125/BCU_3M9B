@@ -76,10 +76,10 @@ end
 
 Pcoi=sum(Pm)-sum(Pe);
 
-% dfdt(1) =  (Pm(2)-Pe(2)-Pcoi/sum(m)*m(2))/m(2); 
-% dfdt(2) =  (Pm(3)-Pe(3)-Pcoi/sum(m)*m(3))/m(3);
-dfdt(1) =  (Pm(2)-Pe(2)-Pcoi/sum(m)*m(2))/d(2); 
-dfdt(2) =  (Pm(3)-Pe(3)-Pcoi/sum(m)*m(3))/d(3);
+dfdt(1) =  (Pm(2)-Pe(2)-Pcoi/sum(m)*m(2))/m(2); 
+dfdt(2) =  (Pm(3)-Pe(3)-Pcoi/sum(m)*m(3))/m(3);
+% dfdt(1) =  (Pm(2)-Pe(2)-Pcoi/sum(m)*m(2))/d(2); 
+% dfdt(2) =  (Pm(3)-Pe(3)-Pcoi/sum(m)*m(3))/d(3);
 
 % power of load bus
 dfdt(3) = -Pnet(1);

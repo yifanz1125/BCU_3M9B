@@ -3,9 +3,9 @@ clear
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Cal_MM_Static_SPM;
 clear EMF Yload Case netdata
-clear DT HT ngen
+clear DT HT
 %% Calculate exit point along fault-on Trajectory
-    Tfault=2;   Tunit=1e-4;
+    Tfault=0.5;   Tunit=1e-4;
     delta0=prefault.SEP_delta;
     omega0=prefault.SEP_omegapu*Basevalue.omegab;
     delta_net0=prefault.net_delta;

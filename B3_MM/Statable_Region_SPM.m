@@ -184,24 +184,24 @@ for m = 1 : length(ep_set_ext)
             [results_n,fval,exitflag,output,jacobian]=fsolve(@(x)Fun_AEfslove_SPM(x,deltacc_n,preset,"postfault"),temp_ini,optimset('TolFun',1e-20,'MaxFunEvals',1e5,'Maxiter',1e5,'Display','off','TolX',1e-5));
             perturb_n = [perturb_xep_n;results_n];
 
-            [~ , x_p] = ode15s(@f_backward,[0,10],perturb_p,options);
-            [~ , x_n] = ode15s(@f_backward,[0,10],perturb_n,options);
+            [~ , x_p] = ode15s(@f_backward,[0,1],perturb_p,options);
+            [~ , x_n] = ode15s(@f_backward,[0,1],perturb_n,options);
             x_all = [flip(x_n,1);x_p];
             plot(x_all(:,1),x_all(:,2),'k-','linewidth',1.5);
         end        
 end
 
 
-%% trajectory
-X0=ep_set(3).xep+[0.4; 0];
-m=preset.m;
-delta1c= -m(2:ngen)'*X0(1:2)/m(1);
-deltacc = [delta1c X0(1) X0(2)];
-net_ini=[ep_set(3).delta_net_ep;ep_set(3).voltage_net_ep];
-[results,fval,exitflag,output,jacobian]=fsolve(@(x)Fun_AEfslove_SPM(x,deltacc,preset,"postfault"),net_ini,optimset('TolFun',1e-20,'MaxFunEvals',1e5,'Maxiter',1e5,'Display','off','TolX',1e-5));
-xinit = [X0;net_ini-0.01];
-[tt , x_all] = ode15s(@f_backward,[0,3],xinit,options);
-plot(x_all(:,1),x_all(:,2),'k-','linewidth',1);
+% %% trajectory
+% X0=ep_set(2).xep+[0.4; 0];
+% m=preset.m;
+% delta1c= -m(2:ngen)'*X0(1:2)/m(1);
+% deltacc = [delta1c X0(1) X0(2)];
+% net_ini=[ep_set(2).delta_net_ep;ep_set(2).voltage_net_ep];
+% [results,fval,exitflag,output,jacobian]=fsolve(@(x)Fun_AEfslove_SPM(x,deltacc,preset,"postfault"),net_ini,optimset('TolFun',1e-20,'MaxFunEvals',1e5,'Maxiter',1e5,'Display','off','TolX',1e-5));
+% xinit = [X0;net_ini-0.01];
+% [tt , x_all] = ode15s(@f_backward,[0,3],xinit,options);
+% plot(x_all(:,1),x_all(:,2),'k-','linewidth',1);
 
 
 

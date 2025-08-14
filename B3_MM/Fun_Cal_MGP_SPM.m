@@ -4,7 +4,7 @@
 function [deltac_MGP,num_Traj,flag_MGP,Normtt,norm_min]=Fun_Cal_MGP_SPM(deltac_escape,theta_escape,voltage_escape,postfault,preset)
 %% Settings
     Tunit=1e-4; % time unit for iteration
-    n_itermax=20;    % maximum steps in one iteration procedure
+    n_itermax=50;    % maximum steps in one iteration procedure
     norm_Tol=1e-5;  % Tolerance set for MGP identification
     n_MGPtraj=0;    % counter for trajectory numbers
     n_MGPtrajmax=1000;  % maximum trajectory numbers
@@ -13,6 +13,7 @@ function [deltac_MGP,num_Traj,flag_MGP,Normtt,norm_min]=Fun_Cal_MGP_SPM(deltac_e
     Normtt=zeros(n_itermax*n_MGPtrajmax,1);  % for observation: all Norm from each trajectory
      f1=evalin('base','f1');
      f2=evalin('base','f2');
+     Basevalue = evalin('base','Basevalue');
 %% Initialization
     flag_MGP=0;
     deltac_start=deltac_escape';
@@ -21,6 +22,7 @@ function [deltac_MGP,num_Traj,flag_MGP,Normtt,norm_min]=Fun_Cal_MGP_SPM(deltac_e
     plot(postfault.SEP_delta(2),postfault.SEP_delta(3),'ob','LineWidth',1.5,'MarkerSize',8); hold on;
 %% MGP calculation
 while(flag_MGP==0)
+    [theta_start,voltage_start,flag_iter,n_iter,err] = Fun_AEiteration_SPM(theta_start,voltage_start,deltac_start,preset,Basevalue,"postfault",1e4,1e-10);
     [deltac_iter,theta_iter,voltage_iter,Normp,no_MGP,flag_MGP]=Fun_Cal_MGP_singletraj_SPM(deltac_start,theta_start,voltage_start,Tunit,n_itermax,norm_Tol,Yfull,preset);
     n_MGPtraj=n_MGPtraj+1;  % counter for iteration ++
     for i=1:size(Normp,1)
@@ -51,7 +53,7 @@ while(flag_MGP==0)
     deltac_last=deltac_iter(n_itermax,:)';
     theta_lastpoint=theta_iter(n_itermax,:)';
     voltage_lastpoint=voltage_iter(n_itermax,:)';
-    [deltac_update,flag_update]=Fun_Cal_UpdateStartPoint_SPM(deltac_last,theta_lastpoint,voltage_lastpoint,preset,postfault);
+    [deltac_update,~,~,flag_update]=Fun_Cal_UpdateStartPoint_SPM(deltac_last,theta_lastpoint,voltage_lastpoint,preset,postfault);
     if(flag_update==1)
         deltac_starthis=deltac_start;
         deltac_start=deltac_update;
