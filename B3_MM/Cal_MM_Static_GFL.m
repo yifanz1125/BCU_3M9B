@@ -13,15 +13,14 @@ close all
 %% Generator parameters
 % 9 bus sys===========================================
     Basevalue.omegab=2*pi*60;
-    preset.m=[0.1254;0.034;0.0016];  %[10;10;10]/omegab;
-    preset.d=preset.m.*[0.2;0.2;10];
+    preset.m=[0.1254;0.034]; %preset.m=[0.1254;0.034;0.016];
+    preset.d=preset.m.*[0.2;0.2]; %preset.d=preset.m.*[0.2;0.2;0.2];
     preset.PloadZIP = [1 0 0]; % Z I P
     preset.QloadZIP = [1 0 0]; % Z I P
-% 9 bus sys===========================================
-%%%%%%% 思考一下怎么把这几项融到powerflow计算中 %%%%%%%%%
-    preset.Pmpu=[0.8980;1.3432;0.9419];
-    preset.xd1=[0.0608;0.1198;0.1813];
-    preset.Epu=[1.1083;1.1071;1.0606];
+
+    preset.Pmpu=[0.8980;1.3432];%preset.Pmpu=[0.8980;1.3432;0.9419];
+    preset.xd1=[0.0608;0.1198];
+    preset.Epu=[1.1083;1.1071];
 
     ngen=size(preset.m,1);
     DHri=roundn(preset.d./preset.m,-3);
@@ -33,6 +32,7 @@ close all
     end
     preset.flag_uniform=flag_uniform;
     clear flag_uniform DHri
+
 %% Powerflow parameters
     path_matdata='C:\Users\yz7521\OneDrive - Imperial College London\BCU Code\BCU_3M9B\C1_Matpower\matpower7.1\data';
     addpath(genpath(path_matdata));
@@ -42,13 +42,23 @@ close all
     path_matpower='C:\Users\yz7521\OneDrive - Imperial College London\BCU Code\BCU_3M9B\C1_Matpower\matpower7.1';
     addpath(genpath(path_matpower));
     pfdata=Fun_ResultBack(Case);
-    if(ngen~=pfdata.bus.numgen)
-        error('Powerflow data and generators data not match');
-    end
+%     if(ngen~=pfdata.bus.numgen)
+%         error('Powerflow data and generators data not match');
+%     end
     preset.flagxd=0;    % 0--consider xd' in network already
     % internal EMF calculation
     EMF=Fun_Cal_GenEMF(preset.flagxd,pfdata,preset.xd1);    
     clear path_matpower path_matdata
+%% GFL parameters - G3
+    preset.Id = pfdata.gen.PQ(3,1) /Basevalue.Sbase/ pfdata.gen.voltage(3,1);
+    preset.Iq = -pfdata.gen.PQ(3,2) /Basevalue.Sbase/ pfdata.gen.voltage(3,1);
+    preset.Kp_pll = 20*2*pi;
+    preset.Ki_pll = preset.Kp_pll*0.1;
+    preset.n_gfl = 1;
+    preset.no_gfl = 3;
+
+
+
 %% Fault settings
     preset.faultline=[9;6];  % [Frombus Tobus]
     preset.faultposition=0;
@@ -110,7 +120,9 @@ close all
     preset.Iload = Iload;
     preset.Sload = Sload;
 
+    preset.machineno = pfdata.gen.no;
     preset.genno = pfdata.gen.no;
+    preset.genno(preset.no_gfl)=[];
     
     clear Y Loadbus Y_forR
     % Reduced Network Admittance of Prefault
@@ -177,14 +189,16 @@ close all
 %         clear flag_iter n_iter
     %% Adopt fsolve
     elseif(preset.EquCal==2)
-        x_init=[zeros(ngen,1); zeros((nbus-ngen),1); ones((nbus-ngen),1)];
-        Results_fsolve=fsolve(@(x)Fun_SEPfslove_SPM(x,preset,prefault,Basevalue),x_init,options);
+        x_init=[zeros(ngen,1); zeros((nbus-ngen),1); ones((nbus-ngen),1);0;0];
+        Results_fsolve=fsolve(@(x)Fun_SEPfslove_SPM_GFL(x,preset,prefault,Basevalue),x_init,options);
         prefault.SEP_omegapu=Results_fsolve(ngen)/Basevalue.omegab+1;
         delta_tmp=[Results_fsolve(1:ngen-1);0];
         deltacoi=delta_tmp'*preset.m/sum(preset.m);
         prefault.SEP_delta=delta_tmp-deltacoi;
         prefault.net_delta=Results_fsolve((ngen+1):nbus)-deltacoi;
         prefault.net_voltage=Results_fsolve((nbus+1):(2*nbus-ngen));
+        prefault.pll = Results_fsolve((2*nbus-ngen)+1)-deltacoi;
+        prefault.xint = Results_fsolve((2*nbus-ngen)+2);
         clear delta_tmp Results_fsolve
         x_init(ngen)=(prefault.SEP_omegapu-1)*Basevalue.omegab;
         for i=1:ngen-1
@@ -196,13 +210,15 @@ close all
         for i=1:(nbus-ngen)
             x_init(i+nbus)=prefault.net_voltage(i);
         end
-        Results_fsolve=fsolve(@(x)Fun_SEPfslove_SPM(x,preset,postfault,Basevalue),x_init,options);
+        Results_fsolve=fsolve(@(x)Fun_SEPfslove_SPM_GFL(x,preset,postfault,Basevalue),x_init,options);
         postfault.SEP_omegapu=Results_fsolve(ngen)/Basevalue.omegab+1;
         delta_tmp=[Results_fsolve(1:ngen-1);0];
         deltacoi=delta_tmp'*preset.m/sum(preset.m);
         postfault.SEP_delta=delta_tmp-deltacoi;
         postfault.net_delta=Results_fsolve((ngen+1):nbus)-deltacoi;
         postfault.net_voltage=Results_fsolve((nbus+1):(2*nbus-ngen));
+        postfault.pll = Results_fsolve((2*nbus-ngen)+1)-deltacoi;
+        postfault.xint = Results_fsolve((2*nbus-ngen)+2);
         clear delta_tmp Results_fsolve
     end
 %     [prefault.SEP_Perr,flag_SEPerr]=Fun_SEPcheck(prefault,preset,prefault.SEP_delta,(prefault.SEP_omegapu-1)*Basevalue.omegab);
