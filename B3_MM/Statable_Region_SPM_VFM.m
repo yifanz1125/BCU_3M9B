@@ -161,7 +161,7 @@ figure;
 hold on;
 grid on;
 color_code = {'blue','magenta','red','black'};
-%axis([-2*pi,2*pi,-2*pi,2*pi]);
+axis([-2*pi,2*pi,-2*pi,2*pi]);
 for m = 1 : length(ep_set_ext)
         xep = ep_set_ext(m).xep;
         flag= ep_set_ext(m).flag_reduce;
@@ -184,8 +184,8 @@ for m = 1 : length(ep_set_ext)
             [results_n,fval,exitflag,output,jacobian]=fsolve(@(x)Fun_AEfslove_SPM(x,deltacc_n,preset,"postfault"),temp_ini,optimset('TolFun',1e-20,'MaxFunEvals',1e5,'Maxiter',1e5,'Display','off','TolX',1e-5));
             perturb_n = [perturb_xep_n;results_n];
 
-            [~ , x_p] = ode15s(@f_backward,[0,1],perturb_p,options);
-            [~ , x_n] = ode15s(@f_backward,[0,1],perturb_n,options);
+            [~ , x_p] = ode15s(@f_backward,[0,10],perturb_p,options);
+            [~ , x_n] = ode15s(@f_backward,[0,10],perturb_n,options);
             x_all = [flip(x_n,1);x_p];
             plot(x_all(:,1),x_all(:,2),'k-','linewidth',1.5);
         end        
@@ -203,8 +203,7 @@ end
 % [tt , x_all] = ode15s(@f_backward,[0,3],xinit,options);
 % plot(x_all(:,1),x_all(:,2),'k-','linewidth',1);
 
-
-
+%%
 
 
 %%
@@ -233,14 +232,14 @@ function disp_v(msg,v)
     disp(v);
 end
 function dfdt = f(x)  
-        dfdt = f_reducedstate_SPM(x); %dfdt = f_reducedstate2_SPM(x);
+        dfdt = f_reducedstate_SPM_VFM(x); %dfdt = f_reducedstate2_SPM(x);
 end
 function dfdt = f_forward(t,x)
-    dfdt = f_reducedstate_SPM(x);
+    dfdt = f_reducedstate_SPM_VFM(x);
 end
 
 function dfdt = f_backward(t,x)
-    dfdt = f_reducedstate_SPM_backward(x);
+    dfdt = f_reducedstate_SPM_backward_VFM(x);
 end
 
 function out = maxabs(in)
