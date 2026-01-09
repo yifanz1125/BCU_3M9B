@@ -2,7 +2,7 @@
 %clear
 %Cal_MM_Static;
 %clear pfdata EMF Yload Case netdata
-
+preset.PathEnergyCal=20; % 0: Ray approximation  n: N-segment trap approximation (-1)--neglect this part
 omegab=Basevalue.omegab;
 %% Tfault and Tclear set
     Iter.Tfault=20;
