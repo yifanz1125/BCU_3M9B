@@ -48,7 +48,8 @@ function [Ep1,Ep2,Ep3,Ep4,Ep5]=Fun_Cal_PotentialEnergy_SPM(preset,postfault,thet
 
     % network losses
     if(preset.PathEnergyCal==0)
-        Ep4=0;
+        Ep4=0;  
+        %Ray approximation: to be completed
     elseif(preset.PathEnergyCal==-1)
         Ep4=0;
     else

@@ -4,7 +4,7 @@
 clear
 close all
 %% Energy estimation
-    preset.PathEnergyCal=10; % 0: Ray approximation  n: N-segment trap approximation (-1)--neglect this part
+    preset.PathEnergyCal=20; % 0: Ray approximation  n: N-segment trap approximation (-1)--neglect this part
 %% Equilibrium calculation method
     preset.EquCal=2;    % 1--Newton method 2--fsolve method
 %% fsolve preset
@@ -14,7 +14,7 @@ close all
 % 9 bus sys===========================================
     Basevalue.omegab=2*pi*60;
     preset.m=[0.1254;0.034;0.016];  %[10;10;10]/omegab;
-    preset.d=preset.m.*[0.2;0.2;0.2];
+    preset.d=preset.m.*[0.1;0.1;0.1];
     preset.PloadZIP = [1 0 0]; % Z I P
     preset.QloadZIP = [1 0 0]; % Z I P
 % 9 bus sys===========================================

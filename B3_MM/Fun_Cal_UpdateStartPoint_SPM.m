@@ -58,8 +58,10 @@ function [deltac_update,theta_update,voltage_update,flag_update]=Fun_Cal_UpdateS
     deltac_act=deltac_SEP+len_ray*dir_ray;
     theta_est = theta_SEP;
     voltage_est = voltage_SEP;
-    [theta_act,voltage_act,flag_iter,n_it,err] = Fun_AEiteration_SPM(theta_est,voltage_est,deltac_act,preset,Basevalue,"postfault",1e4,1e-10);
-
+    [theta_act,voltage_act,flag_iter,n_it,err] = Fun_AEiteration_SPM(theta_est,voltage_est,deltac_act,preset,Basevalue,"postfault",1e4,1e-12);
+    if(flag_iter~=1)
+        error('no AE solution');
+    end
     [Ep(1),Ep(2),Ep(3),Ep(4),Ep(5)]=Fun_Cal_PotentialEnergy_SPM(preset,postfault,deltac_act,theta_act,voltage_act);
     %[Ep(1),Ep(2),Ep(3)]=Fun_Cal_PotentialEnergy(preset,postfault,deltac_SEP,deltac_act);
     Ep_obsv(3)=sum(Ep);
@@ -70,8 +72,10 @@ function [deltac_update,theta_update,voltage_update,flag_update]=Fun_Cal_UpdateS
         deltac_act=deltac_act+len_ray*dir_ray;
         theta_est = theta_act;
         voltage_est = voltage_act;
-        [theta_act,voltage_act,flag_iter,n_it,err] = Fun_AEiteration_SPM(theta_est,voltage_est,deltac_act,preset,Basevalue,"postfault",1e4,1e-10);
-
+        [theta_act,voltage_act,flag_iter,n_it,err] = Fun_AEiteration_SPM(theta_est,voltage_est,deltac_act,preset,Basevalue,"postfault",1e4,1e-12);
+        if(flag_iter~=1)
+            error('no AE solution');
+        end
         [Ep(1),Ep(2),Ep(3),Ep(4),Ep(5)]=Fun_Cal_PotentialEnergy_SPM(preset,postfault,deltac_act,theta_act,voltage_act);
         %[Ep(1),Ep(2),Ep(3)]=Fun_Cal_PotentialEnergy(preset,postfault,deltac_SEP,deltac_act);
         Ep_obsv(3)=sum(Ep);
@@ -91,9 +95,12 @@ function [deltac_update,theta_update,voltage_update,flag_update]=Fun_Cal_UpdateS
         voltage_est = voltage_act;
         [theta_update,voltage_update,flag_iter,n_it,err] = Fun_AEiteration_SPM(theta_est,voltage_est,deltac_update,preset,Basevalue,"postfault",1e4,1e-10);
     else
-%         error('No local maximum point found!');
+        %error('No local maximum point found!');
+        fprintf('No local maximum point found!');
         flag_update=0;
-        deltac_update=deltac_lastpoint-len_ray*dir_ray;
+        deltac_update=deltac_lastpoint;
+        theta_est=theta_lastpoint;
+        voltage_est=voltage_lastpoint;
         [theta_update,voltage_update,flag_iter,n_it,err] = Fun_AEiteration_SPM(theta_est,voltage_est,deltac_update,preset,Basevalue,"postfault",1e4,1e-10);
     end
 end

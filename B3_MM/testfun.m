@@ -1,7 +1,7 @@
-%% start from escape point, follows stable boundary and find MGP where potential field norm is rather small
-%% Input: escape point, postfault network, preset parameters
-%% Output: MGP point, numbers of trajectories with each one contains five steps (defined by n_iteamax), flag_MGP (1--success)
-function [deltac_MGP,theta_MGP,voltage_MGP,num_Traj,flag_MGP,Normtt,norm_min]=Fun_Cal_MGP_SPM(deltac_escape,theta_escape,voltage_escape,postfault,preset)
+deltac_escape=escape.deltac;
+theta_escape=escape.theta;
+voltage_escape=escape.voltage;
+
 %% Settings
     Tunit=1e-3; % time unit for iteration
     n_itermax=10;    % maximum steps in one iteration procedure
@@ -39,8 +39,8 @@ while(flag_MGP==0)
         end
         norm_min = Normp(end);
     else
-        figure(f1);
-        plot(deltac_iter(1:no_MGP,2),deltac_iter(1:no_MGP,3));
+         figure(f1);
+         plot(deltac_iter(1:no_MGP,2),deltac_iter(1:no_MGP,3));
         deltac_MGP=deltac_iter(no_MGP,:);
         theta_MGP=theta_iter(no_MGP,:);
         voltage_MGP= theta_iter(no_MGP,:);
@@ -48,10 +48,8 @@ while(flag_MGP==0)
         norm_min = Normp(no_MGP);
         figure(f2);
         plot((n_MGPtraj-1)*n_itermax+1:(n_MGPtraj-1)*n_itermax+no_MGP+1,Normp(1:no_MGP+1),'k-','LineWidth',1.5);
-        break;
     end
-    hold on;
-    %% No MGP found in last iteartion process, update start point
+    % No MGP found in last iteartion process, update start point
     deltac_last=deltac_iter(n_itermax,:)';
     theta_lastpoint=theta_iter(n_itermax,:)';
     voltage_lastpoint=voltage_iter(n_itermax,:)';
@@ -68,7 +66,6 @@ while(flag_MGP==0)
             voltage_MGP= voltage_update';
             num_Traj=n_MGPtraj;
             fprintf('MGP found since the iteration process reached a repeated status!\n');
-            break;
         end
         if(norm(deltac_start-deltac_starthis)>0.5*norm(deltac_starthis-postfault.SEP_delta))
             deltac_start=deltac_last;
@@ -87,4 +84,4 @@ while(flag_MGP==0)
         error('No MGP found in %d times',n_MGPtraj);
     end
 end
-    clear Normp noNorm i 
+

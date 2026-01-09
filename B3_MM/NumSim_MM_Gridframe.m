@@ -6,7 +6,7 @@
 omegab=Basevalue.omegab;
 %% Tfault and Tclear set
     Iter.Tfault=20;
-    Iter.Trecover=20.514;
+    Iter.Trecover=20.24;
     Iter.Ttotal=100;
     Iter.Tunit=1e-4;
     T_before = 10;
