@@ -66,6 +66,7 @@ function [thetac_update,flag_update]=Fun_Cal_UpdateStartPoint(thetac_lastpoint,p
         thetac_update=thetac_act-len_ray*dir_ray;
     else
 %         error('No local maximum point found!');
+        fprintf('No local maximum point found!');
         flag_update=0;
         thetac_update=thetac_lastpoint-len_ray*dir_ray;
     end
