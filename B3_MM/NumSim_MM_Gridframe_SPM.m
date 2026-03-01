@@ -85,7 +85,7 @@ omegab=Basevalue.omegab;
     Vmnet = [Vmnet_pre;Vmnet_fault;Vmnet_post];
     Vpnet = [Vpnet_pre;Vpnet_fault;Vpnet_post];
 %% Results derived by DAE function in Structure Preserved Model
-M = diag([ones(3,1); ones(12,1)*1e-15; ones(3,1)]);
+M = diag([ones(3,1); zeros(12,1)*1e-15; ones(3,1)]);
 options = odeset('Mass',M,'RelTol',1e-10,'AbsTol',[1e-8*ones(1,3),1e-12*ones(1,12),1e-8*ones(1,3)]);
 % prefault
     system="prefault";

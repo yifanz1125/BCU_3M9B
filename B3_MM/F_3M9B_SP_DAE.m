@@ -136,14 +136,14 @@ dfdt(5) = -Pnet(2);
 dfdt(6) = -Pnet(3);
 dfdt(7) = -Pnet(4);
 dfdt(8) = -Pnet(5);
-dfdt(9) = 0;
+dfdt(9) = x(9) - 0;
 % reactive power of load bus
 dfdt(10) = -Qnet(1);
 dfdt(11) = -Qnet(2);
 dfdt(12) = -Qnet(3);
 dfdt(13) = -Qnet(4);
 dfdt(14) = -Qnet(5);
-dfdt(15) = 0;
+dfdt(15) = x(15) - 0;
 else
 % power of load bus
 dfdt(4) = -Pnet(1);

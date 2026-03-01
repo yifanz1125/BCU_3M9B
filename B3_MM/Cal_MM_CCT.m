@@ -111,9 +111,11 @@ clear DT HT ngen
     clear strLyaCCT
 
     %% Calculate Real CCT
+    t_all = tic;
     [Critical.REA.CCT,Critical.REA.Exit_thetac,Critical.REA.Exit_omegac,Critical.REA.Exit_theta,Critical.REA.Exit_omega,Critical.REA.flag_CCT,Critical.Traj.Stb,Critical.Traj.Unstb]=Fun_Cal_CCT_Real(fault,postfault,preset,Basevalue,Critical.LEA.CCT);
     strREACCT=['CCT(REA) is ' repmat('%1.4f ',1,numel(Critical.REA.CCT)) 's \n'];
     fprintf(strREACCT,Critical.REA.CCT);
+    time = toc(t_all);
     clear strREACCT
 
     %% Estimate damping energy
